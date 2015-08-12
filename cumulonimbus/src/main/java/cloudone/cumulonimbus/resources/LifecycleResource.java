@@ -20,7 +20,7 @@ public class LifecycleResource {
     @Path("shutdown")
     //@Produces("text/plain")
     public void shutDown() {
-        System.exit(0);
+        C1Services.getInstance().getLifecycleService().shutdown();
     }
 
     @GET

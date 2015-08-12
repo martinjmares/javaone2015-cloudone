@@ -2,8 +2,10 @@ package cloudone.cumulonimbus;
 
 import cloudone.ApplicationInfo;
 import cloudone.C1Services;
+import cloudone.LifecycleService;
 import cloudone.RuntimeInfo;
 import cloudone.internal.ApplicationInfoImpl;
+import cloudone.internal.LifecycleServiceImpl;
 import cloudone.internal.RuntimeInfoImpl;
 import org.apache.commons.cli.HelpFormatter;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -28,7 +30,6 @@ public final class Main {
 
     private final CumulonimbusApp cumulonimbusApp;
     private final ApplicationInfo applicationInfo;
-    private final CountDownLatch stopLatch = new CountDownLatch(1);
 
     private Main(CumulonimbusApp cumulonimbusApp) {
         this.cumulonimbusApp = cumulonimbusApp;
@@ -48,34 +49,36 @@ public final class Main {
         this.applicationInfo = ai;
     }
 
-    public void stop() {
-        stopLatch.countDown();
-    }
-
     private void run() throws Exception {
         if (C1Services.getInstance().getRuntimeInfo().getCommandLine().hasOption('h')) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("CloudOne Cumulonimbus Application", C1Services.getInstance().getRuntimeInfo().getCmdlOptions());
             return;
         }
+        LifecycleServiceImpl lifecycleService = (LifecycleServiceImpl) C1Services.getInstance().getLifecycleService();
         //Start Cumulonimbus
         cumulonimbusApp.init();
         LOGGER.info("STARTING: " + applicationInfo.getName());
         final ResourceConfig resourceConfig = ResourceConfig.forApplication(cumulonimbusApp);
         final URI uri = URI.create("http://localhost:" + applicationInfo.getPort() + "/");
         final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(uri, resourceConfig);
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    LOGGER.info("--------------- SHUTDOWN: " + applicationInfo.getName() + " ---------------");
-                    server.shutdown();
-                    applicationInfo.getApplication().shutDown();
-                }
-            });
+        lifecycleService.registerListener(new LifecycleService.LifecycleListener() {
+            @Override
+            public void onStart() {
+            }
+
+            @Override
+            public void onShutdown() {
+                LOGGER.info("--------------- SHUTDOWN: " + applicationInfo.getName() + " ---------------");
+                server.shutdown();
+                applicationInfo.getApplication().shutDown();
+            }
+        });
         cumulonimbusApp.started();
         LOGGER.info("--------------- " + applicationInfo.getName() + " is RUNNING on port " + applicationInfo.getPort() + " ---------------");
+        lifecycleService.start();
         //Wait for stop signal on the application
-        stopLatch.await();
+        lifecycleService.awaitForShutdown();
     }
 
     public static void main(String[] args) {

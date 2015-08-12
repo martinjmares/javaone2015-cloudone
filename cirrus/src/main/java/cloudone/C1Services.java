@@ -1,5 +1,6 @@
 package cloudone;
 
+import cloudone.internal.LifecycleServiceImpl;
 import cloudone.internal.RuntimeInfoImpl;
 
 /** Provides access to all cloudOne services.
@@ -14,6 +15,10 @@ public class C1Services {
      */
     public RuntimeInfo getRuntimeInfo() {
         return RuntimeInfoImpl.getInstance();
+    }
+
+    public LifecycleService getLifecycleService() {
+        return LifecycleServiceImpl.getInstance();
     }
 
     public static C1Services getInstance() {
