@@ -3,6 +3,7 @@ package cloudone.internal;
 import cloudone.ApplicationInfo;
 import cloudone.C1Application;
 import cloudone.RuntimeInfo;
+import cloudone.ServiceFullName;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
@@ -10,9 +11,14 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  *  @author Martin Mares (martin.mares at oracle.com)
@@ -21,7 +27,10 @@ public class RuntimeInfoImpl implements RuntimeInfo {
 
     public static class Builder {
 
+        private static final String MANIFEST_SERVICE_NAME = "X-CloudOne-ServiceName";
+
         private final RuntimeInfoImpl instance = new RuntimeInfoImpl();
+        private Manifest manifest;
 
         public Builder addApplication(C1Application c1Application) {
             instance.applicationInfos.add(new ApplicationInfoImpl(c1Application));
@@ -59,6 +68,36 @@ public class RuntimeInfoImpl implements RuntimeInfo {
             return this;
         }
 
+        private Manifest getPreferredManifest() {
+            if (manifest == null) {
+                Enumeration<URL> resources = null;
+                try {
+                    resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+                } catch (IOException e) {
+                    throw new RuntimeException("Can not access META-INF/MANIFEST.MF in using ClassLoader.");
+                }
+                while (resources.hasMoreElements()) {
+                    URL url = resources.nextElement();
+                    try {
+                        Manifest mnf = new Manifest(url.openStream());
+                        if (mnf.getMainAttributes().getValue(MANIFEST_SERVICE_NAME) != null) {
+                            if (this.manifest == null) {
+                                this.manifest = mnf;
+                            } else {
+                                throw new RuntimeException("More then one manifest file with cloud one servie attribute.");
+                            }
+                        }
+                    } catch (IOException E) {
+                        throw new RuntimeException("Can not read/parse manifest file from " + url);
+                    }
+                }
+            }
+            if (manifest == null) {
+                throw new  RuntimeException("Can not find manifest file with cloud one service related attributes.");
+            }
+            return manifest;
+        }
+
         public void build() throws Exception {
             instance.applicationInfos = Collections.unmodifiableList(instance.applicationInfos);
             //Find C1_HOME
@@ -90,6 +129,22 @@ public class RuntimeInfoImpl implements RuntimeInfo {
                     throw new Exception("Cannot parse --" + appInfo.getName() + ".port parameter value.");
                 }
             }
+            //Service full name
+            String serviceName = getPreferredManifest().getMainAttributes().getValue(MANIFEST_SERVICE_NAME);
+            if (serviceName == null) {
+                throw new RuntimeException("Can not find " + MANIFEST_SERVICE_NAME + " attribute in MANIFEST.MF file");
+            }
+            ServiceFullName fullName = new ServiceFullName(serviceName);
+            if (instance.getCommandLine().getOptionValue("group") != null) {
+                fullName = new ServiceFullName(instance.getCommandLine().getOptionValue("group"), fullName.getArtifactId(), fullName.getVersion());
+            }
+            if (instance.getCommandLine().getOptionValue("artifact") != null) {
+                fullName = new ServiceFullName(fullName.getGroupId(), instance.getCommandLine().getOptionValue("artifact"), fullName.getVersion());
+            }
+            if (instance.getCommandLine().getOptionValue('v') != null) {
+                fullName = new ServiceFullName(fullName.getGroupId(), fullName.getArtifactId(), instance.getCommandLine().getOptionValue('v'));
+            }
+            instance.serviceFullName = fullName;
             //Build
             RuntimeInfoImpl.instance = this.instance;
         }
@@ -102,16 +157,20 @@ public class RuntimeInfoImpl implements RuntimeInfo {
     private Options cmdlOptions;
     private CommandLine commandLine;
     private File homeDirectory;
+    private ServiceFullName serviceFullName;
     private final long createdTimestamp = System.currentTimeMillis();
 
+    @Override
     public List<ApplicationInfo> getApplicationInfos() {
         return Collections.unmodifiableList(applicationInfos);
     }
 
+    @Override
     public Options getCmdlOptions() {
         return cmdlOptions;
     }
 
+    @Override
     public CommandLine getCommandLine() {
         return commandLine;
     }
@@ -126,5 +185,10 @@ public class RuntimeInfoImpl implements RuntimeInfo {
 
     public long getCreatedTimestamp() {
         return createdTimestamp;
+    }
+
+    @Override
+    public ServiceFullName getServiceFullName() {
+        return serviceFullName;
     }
 }

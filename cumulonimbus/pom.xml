@@ -30,6 +30,9 @@
                                 <!-- add Main-Class to manifest file -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>cloudone.cumulonimbus.Main</mainClass>
+                                    <manifestEntries>
+                                        <X-CloudOne-ServiceName>${project.groupId}:${project.artifactId}:${project.version}</X-CloudOne-ServiceName>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                         </configuration>

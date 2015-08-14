@@ -12,6 +12,11 @@ import java.util.List;
  */
 public interface RuntimeInfo {
 
+    /**
+     * Returns full name of this service.
+     */
+    public ServiceFullName getServiceFullName();
+
     /** Returns all applications included in this runtimeInstance.
      */
     public List<ApplicationInfo> getApplicationInfos();

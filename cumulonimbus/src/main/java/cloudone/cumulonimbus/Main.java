@@ -50,15 +50,16 @@ public final class Main {
     }
 
     private void run() throws Exception {
-        if (C1Services.getInstance().getRuntimeInfo().getCommandLine().hasOption('h')) {
+        RuntimeInfo runtimeInfo = C1Services.getInstance().getRuntimeInfo();
+        if (runtimeInfo.getCommandLine().hasOption('h')) {
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("CloudOne Cumulonimbus Application", C1Services.getInstance().getRuntimeInfo().getCmdlOptions());
+            formatter.printHelp("CloudOne Cumulonimbus Application", runtimeInfo.getCmdlOptions());
             return;
         }
         LifecycleServiceImpl lifecycleService = (LifecycleServiceImpl) C1Services.getInstance().getLifecycleService();
         //Start Cumulonimbus
         cumulonimbusApp.init();
-        LOGGER.info("STARTING: " + applicationInfo.getName());
+        LOGGER.info("STARTING: " + runtimeInfo.getServiceFullName() + ", Application " + applicationInfo.getName());
         final ResourceConfig resourceConfig = ResourceConfig.forApplication(cumulonimbusApp);
         final URI uri = URI.create("http://localhost:" + applicationInfo.getPort() + "/");
         final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(uri, resourceConfig);
