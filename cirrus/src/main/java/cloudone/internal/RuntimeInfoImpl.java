@@ -108,6 +108,16 @@ public class RuntimeInfoImpl implements RuntimeInfo {
             } else {
                 instance.homeDirectory = new File("/var/cloud1");
             }
+            if (!instance.homeDirectory.exists()) {
+                if (!instance.homeDirectory.mkdirs()) {
+                    throw new RuntimeException("C1_HOME directory (" + instance.homeDirectory.getPath() + ") does not exists and cannot be created! "
+                        + "Plese provide this directory or set C1_HOME environmnet variable or c1home parametter to the existing and accessible directory");
+                }
+            }
+            if (!instance.homeDirectory.isDirectory()) {
+                throw new RuntimeException("C1_HOME (" + instance.homeDirectory.getPath() + ") is not directory! "
+                        + "Plese provide this directory or set C1_HOME environmnet variable or c1home parametter to the existing and accessible directory");
+            }
             //Ports
             int defaultPort = -1;
             try {
