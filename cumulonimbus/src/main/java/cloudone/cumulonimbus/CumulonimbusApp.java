@@ -40,12 +40,18 @@ public class CumulonimbusApp extends C1Application {
     @Override
     public void init() throws Exception {
         super.init();
-        Properties properties = loadConfiguration();
-        PortService.init(properties);
+        File cumulunDir = new File(C1Services.getInstance().getRuntimeInfo().getHomeDirectory(), CumulonimbusApp.BASE_DIR_NAME);
+        if (!cumulunDir.exists()) {
+            if (!cumulunDir.mkdirs()) {
+                throw new IOException("Cumulonimbus home directory " + cumulunDir.getPath() + " does not exists and cannot be created!");
+            }
+        }
+        Properties properties = loadConfiguration(cumulunDir);
+        PortService.init(properties, cumulunDir);
     }
 
-    private Properties loadConfiguration() throws Exception {
-        File dir = new File(new File(C1Services.getInstance().getRuntimeInfo().getHomeDirectory(), CumulonimbusApp.BASE_DIR_NAME), CONFIG_DIR_NAME);
+    private Properties loadConfiguration(File cumulonimbusDir) throws Exception {
+        File dir = new File(cumulonimbusDir, CONFIG_DIR_NAME);
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
                 throw new IOException("Configuration directory " + dir.getPath() + " does not exists and cannot be created!");
