@@ -11,6 +11,7 @@ import java.util.HashMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -72,7 +73,7 @@ public class ServiceRegistryServiceTest {
     }
 
     @Test
-    public void testGetClusters() throws Exception {
+    public void testGetClusterandClusters() throws Exception {
         ServiceRegistryService service = new ServiceRegistryService();
         RegisteredRuntime rr1 = service.register(new ServiceFullName("a", "b", "1"), 100, new HashMap<>());
         RegisteredRuntime rr2 = service.register(new ServiceFullName("a", "b", "2"), 101, new HashMap<>());
@@ -80,6 +81,22 @@ public class ServiceRegistryServiceTest {
         Collection<Cluster> clusters = service.getClusters();
         assertNotNull(clusters);
         assertEquals(2, clusters.size());
+        Cluster cluster = service.getCluster(new ServiceFullName("a", "b", "2"));
+        assertNotNull(cluster);
+        assertEquals(1, cluster.getRuntimes().size());
+        assertEquals(new ServiceFullName("a", "b", "2"), cluster.getFullName());
+    }
+
+    @Test
+    public void testGetRuntime() throws Exception {
+        ServiceRegistryService service = new ServiceRegistryService();
+        RegisteredRuntime rr1 = service.register(new ServiceFullName("a", "b", "1"), 100, new HashMap<>());
+        RegisteredRuntime rr2 = service.register(new ServiceFullName("a", "b", "2"), 101, new HashMap<>());
+        RegisteredRuntime rr3 = service.register(new ServiceFullName("a", "b", "1"), 103, new HashMap<>());
+        assertEquals(rr1, service.getRuntime(rr1.getInstanceSecCode()));
+        assertEquals(rr2, service.getRuntime(rr2.getInstanceSecCode()));
+        assertEquals(rr3, service.getRuntime(rr3.getInstanceSecCode()));
+        assertNull(service.getRuntime("foo"));
     }
 
     public static ServiceRegistryService getService() {

@@ -61,6 +61,15 @@ public class Cluster {
         return false;
     }
 
+    public synchronized RegisteredRuntime getRuntime(int instamceId) {
+        for (RegisteredRuntime runtime : runtimes) {
+            if (instamceId == runtime.getInstanceId()) {
+                return runtime;
+            }
+        }
+        return null;
+    }
+
     public ServiceFullName getFullName() {
         return fullName;
     }

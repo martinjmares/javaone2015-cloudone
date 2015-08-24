@@ -123,6 +123,17 @@ public class ServiceRegistryService {
         return Collections.unmodifiableCollection(registry.values());
     }
 
+    public Cluster getCluster(ServiceFullName name) {
+        if (name == null) {
+            return null;
+        }
+        return registry.get(name);
+    }
+
+    public RegisteredRuntime getRuntime(String secCode) {
+        return secRegistry.get(secCode);
+    }
+
     public static ServiceRegistryService getInstance() {
         return INSTANCE;
     }

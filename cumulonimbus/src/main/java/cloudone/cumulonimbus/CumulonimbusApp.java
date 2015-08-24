@@ -2,7 +2,9 @@ package cloudone.cumulonimbus;
 
 import cloudone.C1Application;
 import cloudone.C1Services;
+import cloudone.cumulonimbus.resources.ConfigurationResource;
 import cloudone.cumulonimbus.resources.LifecycleResource;
+import cloudone.cumulonimbus.resources.ServiceResource;
 import cloudone.internal.provider.DurationMessageBodyWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,8 @@ public class CumulonimbusApp extends C1Application {
     public Set<Class<?>> getClasses() {
         return new HashSet<Class<?>>(Arrays.asList(new Class<?>[] {
                 LifecycleResource.class,
+                ConfigurationResource.class,
+                ServiceResource.class,
                 DurationMessageBodyWriter.class
         }));
     }
