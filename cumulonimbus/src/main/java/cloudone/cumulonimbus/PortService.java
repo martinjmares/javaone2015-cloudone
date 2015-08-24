@@ -1,22 +1,10 @@
 package cloudone.cumulonimbus;
 
 import cloudone.cumulonimbus.model.RegisteredRuntime;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -76,8 +64,22 @@ public class PortService {
         }
     }
 
+    public class RegistrationListener implements ServiceRegistryService.RegistrationListener {
+
+        private RegistrationListener() {}
+
+        @Override
+        public void register(RegisteredRuntime runtime) throws Exception {
+            registerRuntime(runtime);
+        }
+
+        @Override
+        public void unregister(RegisteredRuntime runtime) {
+            unregisterRuntime(runtime);
+        }
+    }
+
     private static final long RESERVATION_PARIOD = 5 * 60 * 1000L; //5 minutes
-    private static final String FILE_NAME = "appregistry.xml";
 
     public static final String KEY_PORT_RANGE = "port.range";
     public static final String KEY_PORT_RANGE_ADMIN = "port.range.admin";
@@ -86,46 +88,15 @@ public class PortService {
 
     private static PortService INSTANCE;
 
-    private final Gson gson;
-
-    private final File registryFile;
     private final PortRange appRange;
     private final PortRange adminRange;
 
     private final Map<Integer, RegisteredRuntime> ports = new HashMap<>();
-    private final Map<String, RegisteredRuntime> runtimeIds = new HashMap<>();
     private final Map<Integer, Long> reservations = new HashMap<>();
 
-    private PortService(Properties properties, File dir) throws Exception {
+    private PortService(Properties properties) throws Exception {
         adminRange = new PortRange(properties.getProperty(KEY_PORT_RANGE_ADMIN, "4300-4399"));
         appRange = new PortRange(properties.getProperty(KEY_PORT_RANGE, "4400-4499"));
-        registryFile = new File(dir, FILE_NAME);
-        this.gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-        if (registryFile.exists()) {
-            try (Reader reader = new FileReader(registryFile);) {
-                List<RegisteredRuntime> rtms= gson.fromJson(reader, new TypeToken<ArrayList<RegisteredRuntime>>() {}.getType());
-                for (RegisteredRuntime rtm : rtms) {
-                    doRegistration(rtm);
-                }
-            }
-        }
-    }
-
-    private synchronized void doRegistration(RegisteredRuntime runtime) {
-        boolean modifReservations = false;
-        if (reservations.remove(runtime.getAdminPort()) != null) {
-            modifReservations = true;
-        }
-        ports.put(runtime.getAdminPort(), runtime);
-        for (Integer port : runtime.getApplicationPorts().values()) {
-            if (reservations.remove(port) != null) {
-                modifReservations = true;
-            }
-            ports.put(port, runtime);
-        }
-        runtimeIds.put(runtime.getInstanceId(), runtime);
     }
 
     /**
@@ -135,20 +106,17 @@ public class PortService {
      * @return application registretion id
      * @throws Exception in any case of the conflict
      */
-    public synchronized String registerRuntime(RegisteredRuntime runtime) throws Exception {
+    private synchronized void registerRuntime(RegisteredRuntime runtime) throws Exception {
         if (runtime == null) {
             throw new InvalidParameterException("RegisteredRuntime parameter cannot be null!");
         }
-        RegisteredRuntime r = runtimeIds.get(runtime.getInstanceId());
-        if (r != null) {
-            if (r.equals(runtime)) {
-                return r.getInstanceId();
+        RegisteredRuntime rr2 = ports.get(runtime.getAdminPort());
+        if (rr2 != null) {
+            if (rr2.equals(runtime)) {
+                return; //This is the same => OK
             } else {
-                throw new Exception("Instance ID conflict!");
+                throw new Exception("Admin port conflict!");
             }
-        }
-        if (ports.containsKey(runtime.getAdminPort())) {
-            throw new Exception("Admin port conflict!");
         }
         for (Integer port : runtime.getApplicationPorts().values()) {
             if (ports.containsKey(port)) {
@@ -156,9 +124,19 @@ public class PortService {
             }
         }
         //ALL is ok. Do registration
-        doRegistration(runtime);
-        store();
-        return runtime.getInstanceId();
+        ports.put(runtime.getAdminPort(), runtime);
+        reservations.remove(runtime.getAdminPort());
+        for (Integer port : runtime.getApplicationPorts().values()) {
+            ports.put(port, runtime);
+            reservations.remove(port);
+        }
+    }
+
+    private synchronized void unregisterRuntime(RegisteredRuntime runtime) {
+        ports.remove(runtime.getAdminPort());
+        for (Integer port : runtime.getApplicationPorts().values()) {
+            ports.remove(port);
+        }
     }
 
     private synchronized int reserve(PortRange range) throws Exception {
@@ -190,35 +168,17 @@ public class PortService {
         return reserve(appRange);
     }
 
-    public synchronized RegisteredRuntime getRegisteredRuntime(String instanceId) {
-        return runtimeIds.get(instanceId);
-    }
-
     public synchronized RegisteredRuntime getRegisteredRuntime(int port) {
         return ports.get(port);
     }
 
-    public synchronized Collection<RegisteredRuntime> getRegisteredRuntimes() {
-        return Collections.unmodifiableCollection(runtimeIds.values());
+    RegistrationListener getNewListener() {
+        return new RegistrationListener();
     }
 
-    private synchronized void store() {
-        if (runtimeIds.size() == 0) {
-            if (registryFile.exists()) {
-                registryFile.delete();
-            }
-        } else {
-            try (FileWriter writer = new FileWriter(registryFile);) {
-                gson.toJson(runtimeIds.values(), writer);
-            } catch (IOException ioe) {
-                LOGGER.warn("Can not store port reservations to " + registryFile.getPath() + "!", ioe);
-            }
-        }
-    }
-
-    static PortService init(Properties properties, File dir) throws Exception {
+    static PortService init(Properties properties) throws Exception {
         LOGGER.info("Starting PortService");
-        INSTANCE = new PortService(properties, dir);
+        INSTANCE = new PortService(properties);
         return INSTANCE;
     }
 

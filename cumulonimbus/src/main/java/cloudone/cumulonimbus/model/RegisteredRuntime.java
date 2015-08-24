@@ -5,7 +5,6 @@ import cloudone.ServiceFullName;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Entity for registered service runtime.
@@ -15,22 +14,42 @@ import java.util.UUID;
 public class RegisteredRuntime {
 
     private ServiceFullName serviceName;
-    private String instanceId;
+    private String instanceSecCode;
+    private int instanceId;
     private int adminPort;
+    private transient long lastTouch = -1;
     private Map<String, Integer> applicationPorts = new HashMap<>();
 
-    public RegisteredRuntime(ServiceFullName serviceName, int adminPort) {
+    public RegisteredRuntime(ServiceFullName serviceName,
+                             String instanceSecCode,
+                             int instanceId,
+                             int adminPort,
+                             Map<String, Integer> applicationPorts) {
         this.serviceName = serviceName;
+        this.instanceSecCode = instanceSecCode;
+        this.instanceId = instanceId;
         this.adminPort = adminPort;
-        this.instanceId = UUID.randomUUID().toString();
+        this.applicationPorts.putAll(applicationPorts);
     }
 
     public ServiceFullName getServiceName() {
         return serviceName;
     }
 
-    public String getInstanceId() {
+    public String getInstanceSecCode() {
+        return instanceSecCode;
+    }
+
+    public int getInstanceId() {
         return instanceId;
+    }
+
+    public long getLastTouch() {
+        return lastTouch;
+    }
+
+    public void touch() {
+        lastTouch = System.currentTimeMillis();
     }
 
     public int getAdminPort() {
@@ -41,12 +60,13 @@ public class RegisteredRuntime {
         return Collections.unmodifiableMap(applicationPorts);
     }
 
-    public void registerApplication(String appName, int port) {
-        applicationPorts.put(appName, port);
-    }
-
     public int getApplicationPort(String appName) {
-        return applicationPorts.get(appName);
+        Integer result = applicationPorts.get(appName);
+        if (result == null) {
+            return -1;
+        } else {
+            return result;
+        }
     }
 
     @Override
@@ -56,7 +76,7 @@ public class RegisteredRuntime {
         RegisteredRuntime that = (RegisteredRuntime) o;
         if (adminPort != that.adminPort) return false;
         if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
-        if (instanceId != null ? !instanceId.equals(that.instanceId) : that.instanceId != null) return false;
+        if (instanceSecCode != null ? !instanceSecCode.equals(that.instanceSecCode) : that.instanceSecCode != null) return false;
         return !(applicationPorts != null ? !applicationPorts.equals(that.applicationPorts) : that.applicationPorts != null);
 
     }
@@ -64,9 +84,13 @@ public class RegisteredRuntime {
     @Override
     public int hashCode() {
         int result = serviceName != null ? serviceName.hashCode() : 0;
-        result = 31 * result + (instanceId != null ? instanceId.hashCode() : 0);
+        result = 31 * result + (instanceSecCode != null ? instanceSecCode.hashCode() : 0);
         result = 31 * result + adminPort;
         result = 31 * result + (applicationPorts != null ? applicationPorts.hashCode() : 0);
         return result;
+    }
+
+    public String toRuntimeName() {
+        return serviceName + "::" + instanceId;
     }
 }

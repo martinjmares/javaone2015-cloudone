@@ -1,11 +1,13 @@
 package cloudone.cumulonimbus.model;
 
 import cloudone.ServiceFullName;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.junit.Test;
 
-import static junit.framework.TestCase.assertEquals;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+
 
 /**
  * @author Martin Mares (martin.mares at oracle.com)
@@ -13,15 +15,18 @@ import static junit.framework.TestCase.assertEquals;
 public class RegisteredRuntimeTest {
 
     @Test
-    public void jsonTest() {
-        RegisteredRuntime r = new RegisteredRuntime(new ServiceFullName("a.a.a", "b", "1.0"), 1000);
-        r.registerApplication("app1", 1001);
-        r.registerApplication("app2", 1001);
-        GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.create();
-        String s = gson.toJson(r);
-        RegisteredRuntime r2 = gson.fromJson(s, RegisteredRuntime.class);
-        assertEquals(r, r2);
+    public void testCopyMap() {
+        Map<String, Integer> apps = new HashMap<>();
+        apps.put("one", 100);
+        apps.put("two", 101);
+        RegisteredRuntime rr = new RegisteredRuntime(new ServiceFullName("a", "b", "1"), "sec1", 1, 200, apps);
+        assertEquals(100, rr.getApplicationPort("one"));
+        assertEquals(101, rr.getApplicationPort("two"));
+        apps.put("three", 102);
+        apps.put("one", 500);
+        assertEquals(100, rr.getApplicationPort("one"));
+        assertEquals(101, rr.getApplicationPort("two"));
+        assertEquals(-1, rr.getApplicationPort("three"));
     }
 
 }

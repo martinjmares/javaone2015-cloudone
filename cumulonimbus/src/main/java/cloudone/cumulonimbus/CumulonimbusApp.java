@@ -47,7 +47,8 @@ public class CumulonimbusApp extends C1Application {
             }
         }
         Properties properties = loadConfiguration(cumulunDir);
-        PortService.init(properties, cumulunDir);
+        PortService portService = PortService.init(properties);
+        ServiceRegistryService.init(cumulunDir, portService.getNewListener());
     }
 
     private Properties loadConfiguration(File cumulonimbusDir) throws Exception {

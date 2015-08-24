@@ -49,6 +49,11 @@
             <artifactId>cirrus</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>jersey.extension</groupId>
+            <artifactId>jersey-media-json-gson</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
         <!-- jersey -->
         <dependency>
@@ -73,14 +78,6 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.3.1</version>
-        </dependency>
-
-        <!-- Test -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>
