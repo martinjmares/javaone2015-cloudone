@@ -14,8 +14,10 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
 import java.net.URI;
-import java.util.concurrent.CountDownLatch;
 
 
 /**
@@ -63,6 +65,10 @@ public final class Main {
         final ResourceConfig resourceConfig = ResourceConfig.forApplication(cumulonimbusApp);
         final URI uri = URI.create("http://localhost:" + applicationInfo.getPort() + "/");
         final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(uri, resourceConfig);
+        final File portFile = new File(cumulonimbusApp.getCumulonimbusDir(), "port.txt");
+        try (Writer writer = new FileWriter(portFile)) {
+            writer.write(String.valueOf(applicationInfo.getPort()));
+        }
         lifecycleService.registerListener(new LifecycleService.LifecycleListener() {
             @Override
             public void onStart() {
@@ -71,6 +77,7 @@ public final class Main {
             @Override
             public void onShutdown() {
                 LOGGER.info("--------------- SHUTDOWN: " + applicationInfo.getName() + " ---------------");
+                portFile.delete();
                 server.shutdown();
                 applicationInfo.getApplication().shutDown();
             }

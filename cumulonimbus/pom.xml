@@ -47,12 +47,10 @@
         <dependency>
             <groupId>cloud-one</groupId>
             <artifactId>cirrus</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>jersey.extension</groupId>
             <artifactId>jersey-media-json-gson</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <!-- jersey -->

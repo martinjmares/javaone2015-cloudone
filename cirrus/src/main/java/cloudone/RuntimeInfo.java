@@ -24,6 +24,11 @@ public interface RuntimeInfo {
     public List<ApplicationInfo> getApplicationInfos();
 
     /**
+     * Returns admin port of this runtime.
+     */
+    public int getAdminPort();
+
+    /**
      * Returns all command line options recognised by this runtime instance.
      */
     public Options getCmdlOptions();

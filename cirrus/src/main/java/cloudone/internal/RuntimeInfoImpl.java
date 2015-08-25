@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.jar.Attributes;
+import java.util.StringTokenizer;
 import java.util.jar.Manifest;
 
 /**
@@ -28,6 +28,7 @@ public class RuntimeInfoImpl implements RuntimeInfo {
     public static class Builder {
 
         private static final String MANIFEST_SERVICE_NAME = "X-CloudOne-ServiceName";
+        private static final String MANIFEST_APPLICATION_NAMES = "X-CloudOne-Applications";
 
         private final RuntimeInfoImpl instance = new RuntimeInfoImpl();
         private Manifest manifest;
@@ -39,11 +40,12 @@ public class RuntimeInfoImpl implements RuntimeInfo {
 
         private Options createInternalOptions() {
             Options result = new Options();
-            result.addOption("h", "help", false, "Prints this help information.");
+            result.addOption("h", "help", false, "Prints this help information");
             result.addOption(null, "group", true, "Group id");
             result.addOption(null, "artifact", true, "Artifact id");
             result.addOption("v", "version", true, "Version");
             result.addOption(null, "c1home", true, "Cloud one home directory");
+            result.addOption(null, "adminPort", true, "Administration port of this service instance");
             return result;
         }
 
@@ -65,6 +67,35 @@ public class RuntimeInfoImpl implements RuntimeInfo {
             //Parse cmd line args
             DefaultParser parser = new DefaultParser();
             instance.commandLine = parser.parse(opts, args);
+            return this;
+        }
+
+        /**
+         * Find application definition in MANIFES-MF
+         */
+        public Builder findApplications() throws Exception {
+            String value = getPreferredManifest().getMainAttributes().getValue(MANIFEST_SERVICE_NAME);
+            if (value == null || value.length() == 0) {
+                throw new Exception("No application is configured. Please provide " + MANIFEST_SERVICE_NAME + " attribute in the MANIFEST.MF file.");
+            }
+            StringTokenizer stok = new StringTokenizer(value, ",;:");
+            while (stok.hasMoreTokens()) {
+                String className = stok.nextToken();
+                Class clazz = null;
+                try {
+                    clazz = Class.forName(className);
+                } catch (ClassNotFoundException e) {
+                    throw new Exception("Can not find class for application defined in MANIFEST.MF: " + className);
+                }
+                if (!C1Application.class.isAssignableFrom(clazz)) {
+                    throw new Exception("Application " + className + " is not C1Application!");
+                }
+                try {
+                    addApplication((C1Application) clazz.newInstance());
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new Exception("Application " + className + " does not provides public empty construtor!");
+                }
+            }
             return this;
         }
 
@@ -118,7 +149,7 @@ public class RuntimeInfoImpl implements RuntimeInfo {
                 throw new RuntimeException("C1_HOME (" + instance.homeDirectory.getPath() + ") is not directory! "
                         + "Plese provide this directory or set C1_HOME environmnet variable or c1home parametter to the existing and accessible directory");
             }
-            //Ports
+            //Application ports
             int defaultPort = -1;
             try {
                 String val = instance.commandLine.getOptionValue('p');
@@ -138,6 +169,15 @@ public class RuntimeInfoImpl implements RuntimeInfo {
                 } catch (Exception exc) {
                     throw new Exception("Cannot parse --" + appInfo.getName() + ".port parameter value.");
                 }
+            }
+            //Admin port
+            try {
+                String val = instance.commandLine.getOptionValue("adminPort");
+                if (val != null) {
+                    instance.adminPort = Integer.parseInt(val);
+                }
+            } catch (Exception exc) {
+                throw new Exception("Cannot parse --adminPort parameter value.");
             }
             //Service full name
             String serviceName = getPreferredManifest().getMainAttributes().getValue(MANIFEST_SERVICE_NAME);
@@ -164,6 +204,7 @@ public class RuntimeInfoImpl implements RuntimeInfo {
     private static RuntimeInfoImpl instance;
 
     private List<ApplicationInfo> applicationInfos = new ArrayList<>();
+    private int adminPort = -1;
     private Options cmdlOptions;
     private CommandLine commandLine;
     private File homeDirectory;
@@ -173,6 +214,11 @@ public class RuntimeInfoImpl implements RuntimeInfo {
     @Override
     public List<ApplicationInfo> getApplicationInfos() {
         return Collections.unmodifiableList(applicationInfos);
+    }
+
+    @Override
+    public int getAdminPort() {
+        return adminPort;
     }
 
     @Override
@@ -189,10 +235,12 @@ public class RuntimeInfoImpl implements RuntimeInfo {
         return instance;
     }
 
+    @Override
     public File getHomeDirectory() {
         return homeDirectory;
     }
 
+    @Override
     public long getCreatedTimestamp() {
         return createdTimestamp;
     }

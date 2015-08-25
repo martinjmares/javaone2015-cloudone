@@ -10,9 +10,11 @@
 	<packaging>pom</packaging>
 	
 	<modules>
+        <module>jersey-media-json-gson</module>
         <module>cirrus</module>
         <module>cumulonimbus</module>
-        <module>jersey-media-json-gson</module>
+        <module>nimbostratus</module>
+        <module>stratus</module>
     </modules>
 
     <build>
@@ -61,6 +63,32 @@
 	
 	<dependencyManagement>
         <dependencies>
+            <!-- this project -->
+            <dependency>
+                <groupId>${groupId}</groupId>
+                <artifactId>cirrus</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${groupId}</groupId>
+                <artifactId>cumulonimbus</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${groupId}</groupId>
+                <artifactId>nimbostratus</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${groupId}</groupId>
+                <artifactId>stratus</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jersey.extension</groupId>
+                <artifactId>jersey-media-json-gson</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
 
             <!-- jersey -->
             <dependency>

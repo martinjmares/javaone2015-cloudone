@@ -32,6 +32,8 @@ public class CumulonimbusApp extends C1Application {
     private static final String CONFIG_DIR_NAME = "config";
     private static final String FILE_NAME = "cumulonimbus.properties";
 
+    private File cumulonimbusDir;
+
     public Set<Class<?>> getClasses() {
         return new HashSet<Class<?>>(Arrays.asList(new Class<?>[] {
                 LifecycleResource.class,
@@ -44,15 +46,15 @@ public class CumulonimbusApp extends C1Application {
     @Override
     public void init() throws Exception {
         super.init();
-        File cumulunDir = new File(C1Services.getInstance().getRuntimeInfo().getHomeDirectory(), CumulonimbusApp.BASE_DIR_NAME);
-        if (!cumulunDir.exists()) {
-            if (!cumulunDir.mkdirs()) {
-                throw new IOException("Cumulonimbus home directory " + cumulunDir.getPath() + " does not exists and cannot be created!");
+        cumulonimbusDir = new File(C1Services.getInstance().getRuntimeInfo().getHomeDirectory(), CumulonimbusApp.BASE_DIR_NAME);
+        if (!cumulonimbusDir.exists()) {
+            if (!cumulonimbusDir.mkdirs()) {
+                throw new IOException("Cumulonimbus home directory " + cumulonimbusDir.getPath() + " does not exists and cannot be created!");
             }
         }
-        Properties properties = loadConfiguration(cumulunDir);
+        Properties properties = loadConfiguration(cumulonimbusDir);
         PortService portService = PortService.init(properties);
-        ServiceRegistryService.init(cumulunDir, portService.getNewListener());
+        ServiceRegistryService.init(cumulonimbusDir, portService.getNewListener());
     }
 
     private Properties loadConfiguration(File cumulonimbusDir) throws Exception {
@@ -78,5 +80,9 @@ public class CumulonimbusApp extends C1Application {
         Properties result = new Properties();
         result.load(new FileInputStream(propsFile));
         return result;
+    }
+
+    public File getCumulonimbusDir() {
+        return cumulonimbusDir;
     }
 }
