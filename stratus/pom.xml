@@ -13,5 +13,68 @@
     <packaging>pom</packaging>
     <description>Base POM for any CloudOne microservice.</description>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Maven Shade Plugin to build one JAR-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>2.4.1</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                            <configuration>
+                                <transformers>
+                                    <!-- add Main-Class to manifest file -->
+                                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                        <mainClass>cloudone.internal.ServiceMain</mainClass>
+                                        <manifestEntries>
+                                            <X-CloudOne-ServiceName>${project.groupId}:${project.artifactId}:${project.version}</X-CloudOne-ServiceName>
+                                            <X-CloudOne-Applications>${c1.applications}</X-CloudOne-Applications>
+                                        </manifestEntries>
+                                    </transformer>
+                                </transformers>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- enforce c1.application parameter -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>1.4</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-property</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireProperty>
+                                        <property>c1.applications</property>
+                                        <message>You must set a c1.applications property! The value should be comma separated list if C1Application implementation classes.</message>
+                                    </requireProperty>
+                                </rules>
+                                <fail>true</fail>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nimbostratus</artifactId>
+        </dependency>
+    </dependencies>
+
 
 </project>

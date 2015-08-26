@@ -14,9 +14,14 @@ public class ApplicationInfoImpl implements ApplicationInfo {
     private final String name;
     private int port;
 
-    public ApplicationInfoImpl(C1Application application) {
+    public ApplicationInfoImpl(C1Application application, int port) {
         this.application = application;
         this.name = constructApplicationName(application);
+        this.port = port;
+    }
+
+    public ApplicationInfoImpl(C1Application application) {
+        this(application, -1);
     }
 
     public ApplicationInfoImpl(Class<C1Application> appClass) throws IllegalAccessException, InstantiationException {

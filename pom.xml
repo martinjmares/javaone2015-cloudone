@@ -65,24 +65,24 @@
         <dependencies>
             <!-- this project -->
             <dependency>
-                <groupId>${groupId}</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>cirrus</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>${groupId}</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>cumulonimbus</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>${groupId}</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>nimbostratus</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>${groupId}</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>stratus</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>jersey.extension</groupId>

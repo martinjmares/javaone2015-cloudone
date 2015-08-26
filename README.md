@@ -19,7 +19,8 @@ CloudOne libraries and executable jars are named based on cloud types.
 
 - **Cirrus** is basic shared library for all CloudOne applications
 - **Cumulonimbus** is central cloud service. In this demo it does not support clustering. It must be executed ones per cloud and it must be local for all other executed applications. You know, simple.
-- **Stratus** is main library for any cloud application. It contains the main executable class.
+- **Stratus** is pom which should be used as a parent for all CloudOne micro-services.
+- **Nimbostratus** is C1Application and Main class for all micro-services. Provides bootstrap functionality and administration interface for the CloudOne instance. Communication interface for Cumulonimbus.
 
 ## Build
 

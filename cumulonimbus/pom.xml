@@ -45,7 +45,7 @@
     <dependencies>
         <!-- in project -->
         <dependency>
-            <groupId>cloud-one</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>cirrus</artifactId>
         </dependency>
         <dependency>

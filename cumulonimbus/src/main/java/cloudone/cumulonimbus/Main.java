@@ -73,7 +73,6 @@ public final class Main {
             @Override
             public void onStart() {
             }
-
             @Override
             public void onShutdown() {
                 LOGGER.info("--------------- SHUTDOWN: " + applicationInfo.getName() + " ---------------");

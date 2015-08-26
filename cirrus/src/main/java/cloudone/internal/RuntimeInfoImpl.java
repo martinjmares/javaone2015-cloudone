@@ -221,6 +221,10 @@ public class RuntimeInfoImpl implements RuntimeInfo {
         return adminPort;
     }
 
+    public void setAdminPort(int adminPort) {
+        this.adminPort = adminPort;
+    }
+
     @Override
     public Options getCmdlOptions() {
         return cmdlOptions;

@@ -1,5 +1,8 @@
 package cloudone.internal.dto;
 
+import cloudone.ApplicationInfo;
+import cloudone.RuntimeInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +20,13 @@ public class PortInfo {
         this.adminPort = adminPort;
         if (applicationPorts != null) {
             this.applicationPorts.putAll(applicationPorts);
+        }
+    }
+
+    public PortInfo(RuntimeInfo runtimeInfo) {
+        adminPort = runtimeInfo.getAdminPort();
+        for (ApplicationInfo aInfo : runtimeInfo.getApplicationInfos()) {
+            applicationPorts.put(aInfo.getName(), aInfo.getPort());
         }
     }
 
