@@ -119,7 +119,7 @@ public class GsonProvider implements MessageBodyReader<Object>, MessageBodyWrite
             return false;
         }
         return  !InputStream.class.isAssignableFrom(type)
-                && Reader.class.isAssignableFrom(type);
+                && !Reader.class.isAssignableFrom(type);
     }
 
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
@@ -127,11 +127,11 @@ public class GsonProvider implements MessageBodyReader<Object>, MessageBodyWrite
             return false;
         }
         return  !OutputStream.class.isAssignableFrom(type)
-                && Writer.class.isAssignableFrom(type);
+                && !Writer.class.isAssignableFrom(type);
     }
 
     public long getSize(Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return 0;
+        return -1;
     }
 
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
@@ -139,6 +139,8 @@ public class GsonProvider implements MessageBodyReader<Object>, MessageBodyWrite
     }
 
     public void writeTo(Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        getGson().toJson(o, new OutputStreamWriter(entityStream));
+        OutputStreamWriter writer = new OutputStreamWriter(entityStream);
+        getGson().toJson(o, writer);
+        writer.flush();
     }
 }

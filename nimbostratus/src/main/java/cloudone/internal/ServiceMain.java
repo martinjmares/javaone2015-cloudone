@@ -1,6 +1,7 @@
 package cloudone.internal;
 
 import cloudone.ApplicationInfo;
+import cloudone.C1Application;
 import cloudone.C1Services;
 import cloudone.LifecycleService;
 import cloudone.internal.nimbostratus.CumulonimbusClient;
@@ -23,18 +24,49 @@ import java.util.stream.Stream;
 public class ServiceMain {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMain.class);
 
+    private final ApplicationInfo nimbostratusAppInfo;
+
+    private ServiceMain() {
+        nimbostratusAppInfo = new ApplicationInfo() {
+                    private final NimbostratusApp app = new NimbostratusApp();
+                    @Override
+                    public C1Application getApplication() {
+                        return app;
+                    }
+                    @Override
+                    public String getName() {
+                        return "Nimbostratus";
+                    }
+                    @Override
+                    public int getPort() {
+                        return C1Services.getInstance().getRuntimeInfo().getAdminPort();
+                    }
+                };
+    }
+
+    private Stream<ApplicationInfo> getAllAppInfoStream() {
+        return Stream.concat(C1Services.getInstance().getRuntimeInfo().getApplicationInfos().stream(),
+                Stream.of(this.nimbostratusAppInfo));
+    }
+
     private void run() throws Exception{
         final RuntimeInfoImpl runtimeInfo = (RuntimeInfoImpl) C1Services.getInstance().getRuntimeInfo();
+        //Help?
+        if (runtimeInfo.getCommandLine().hasOption('h')) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp(runtimeInfo.getServiceFullName().getArtifactId() + " Service",
+                    RuntimeInfoImpl.getInstance().getCmdlOptions());
+            return;
+        }
+        //Port update
         updatePortNumbers(runtimeInfo);
         //Start all applications
         LOGGER.info("STARTING: " + runtimeInfo.getServiceFullName());
         LifecycleServiceImpl lifecycleService = (LifecycleServiceImpl) C1Services.getInstance().getLifecycleService();
-        Stream<ApplicationInfo> apps = Stream.concat(runtimeInfo.getApplicationInfos().stream(),
-                Stream.of(new ApplicationInfoImpl(new NimbostratusApp(), runtimeInfo.getAdminPort())));
-        apps.forEach(info -> {
+        getAllAppInfoStream().forEach(info -> {
             try {
                 info.getApplication().init();
-                LOGGER.info("STARTING Application: " + info.getName());
+                LOGGER.info("STARTING Application: " + info.getName() + " on " + info.getPort());
                 final ResourceConfig resourceConfig = ResourceConfig.forApplication(info.getApplication());
                 final URI uri = URI.create("http://localhost:" + info.getPort() + "/");
                 final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(uri, resourceConfig);
@@ -61,6 +93,7 @@ public class ServiceMain {
             @Override
             public void onStart() {
             }
+
             @Override
             public void onShutdown() {
                 try {
@@ -71,11 +104,11 @@ public class ServiceMain {
             }
         });
         //Start
-        apps.forEach(info -> {
+        lifecycleService.start();
+        getAllAppInfoStream().forEach(info -> {
             info.getApplication().started();
             LOGGER.info("--------------- " + info.getName() + " is RUNNING on port " + info.getPort() + " ---------------");
         });
-        lifecycleService.start();
         //Wait for stop signal
         lifecycleService.awaitForShutdown();
     }
@@ -91,20 +124,21 @@ public class ServiceMain {
                 .forEach(info -> ((ApplicationInfoImpl) info).setPort(CumulonimbusClient.getInstance().reservePort(false)));
     }
 
-    public void main(String[] args) {
+    public static void main(String[] args) {
         try {
             (new RuntimeInfoImpl.Builder())
                     .findApplications()
                     .processCommandLineArgs(args)
                     .build();
-            //Help?
-            if (RuntimeInfoImpl.getInstance().getCommandLine().hasOption('h')) {
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp("CloudOne Service", RuntimeInfoImpl.getInstance().getCmdlOptions());
-                return;
-            }
         } catch (Exception exc) {
-            LOGGER.error("General exception in main thread!", exc);
+            LOGGER.error("Initialisation issue!", exc);
+        }
+        try {
+            ServiceMain serviceMain = new ServiceMain();
+            serviceMain.run();
+        } catch (Exception exc) {
+            LOGGER.error("Unexpected exception in main thread", exc);
+            System.exit(1);
         }
     }
 }

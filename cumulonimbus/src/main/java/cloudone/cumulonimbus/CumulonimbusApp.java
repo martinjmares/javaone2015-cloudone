@@ -3,7 +3,7 @@ package cloudone.cumulonimbus;
 import cloudone.C1Application;
 import cloudone.C1Services;
 import cloudone.cumulonimbus.resources.ConfigurationResource;
-import cloudone.cumulonimbus.resources.LifecycleResource;
+import cloudone.internal.resources.LifecycleResource;
 import cloudone.cumulonimbus.resources.ServiceResource;
 import cloudone.internal.provider.DurationMessageBodyWriter;
 import org.slf4j.Logger;

@@ -87,8 +87,20 @@ public class ServiceRegistryService {
         RegisteredRuntime result = registry
                 .computeIfAbsent(fullName, fn -> new Cluster(fn))
                 .register(adminPort, applicationPorts);
-        fireRegister(result);
+        try {
+            fireRegister(result);
+        } catch (Exception e) {
+            //Remove from registry
+            Cluster cluster = registry.get(result.getServiceName());
+            cluster.unRegister(result);
+            if (cluster.getRuntimes().isEmpty()) {
+                registry.remove(result.getServiceName());
+            }
+            LOGGER.warn("Can not accept service registration!", e);
+            throw e;
+        }
         secRegistry.put(result.getInstanceSecCode(), result);
+        LOGGER.info("REGISTERED: " + result.toRuntimeName());
         return result;
     }
 
@@ -103,6 +115,7 @@ public class ServiceRegistryService {
                     registry.remove(cluster);
                 }
                 fireUnRegister(runtime);
+                LOGGER.info("UNREGISTERED: " + runtime.toRuntimeName());
                 return true;
             }
         }
@@ -110,8 +123,7 @@ public class ServiceRegistryService {
     }
 
     private void registerClusterInternal(Cluster cluster) throws Exception {
-        Cluster cl = registry.putIfAbsent(cluster.getFullName(), cluster);
-        if (cl != cluster) {
+        if (registry.putIfAbsent(cluster.getFullName(), cluster) != null) {
             throw new Exception("Cluster " + cluster.getFullName() + " allready registered");
         }
         for (RegisteredRuntime runtime : cluster.getRuntimes()) {

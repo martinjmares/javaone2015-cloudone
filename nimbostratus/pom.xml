@@ -13,7 +13,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>${groupId}</groupId>
+            <groupId>cloud-one</groupId>
             <artifactId>cirrus</artifactId>
         </dependency>
         <dependency>

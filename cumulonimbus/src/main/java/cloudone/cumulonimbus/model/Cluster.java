@@ -77,4 +77,8 @@ public class Cluster {
     public List<RegisteredRuntime> getRuntimes() {
         return Collections.unmodifiableList(runtimes);
     }
+
+    public String toString() {
+        return "Cluster{" + fullName + " - " + runtimes.size() + "}";
+    }
 }

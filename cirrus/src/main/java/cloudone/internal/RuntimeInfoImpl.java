@@ -74,9 +74,9 @@ public class RuntimeInfoImpl implements RuntimeInfo {
          * Find application definition in MANIFES-MF
          */
         public Builder findApplications() throws Exception {
-            String value = getPreferredManifest().getMainAttributes().getValue(MANIFEST_SERVICE_NAME);
+            String value = getPreferredManifest().getMainAttributes().getValue(MANIFEST_APPLICATION_NAMES);
             if (value == null || value.length() == 0) {
-                throw new Exception("No application is configured. Please provide " + MANIFEST_SERVICE_NAME + " attribute in the MANIFEST.MF file.");
+                throw new Exception("No application is configured. Please provide " + MANIFEST_APPLICATION_NAMES + " attribute in the MANIFEST.MF file.");
             }
             StringTokenizer stok = new StringTokenizer(value, ",;:");
             while (stok.hasMoreTokens()) {

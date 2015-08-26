@@ -71,7 +71,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>cloud-one</groupId>
             <artifactId>nimbostratus</artifactId>
         </dependency>
     </dependencies>

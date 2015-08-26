@@ -93,4 +93,15 @@ public class RegisteredRuntime {
     public String toRuntimeName() {
         return serviceName + "::" + instanceId;
     }
+
+    @Override
+    public String toString() {
+        return "RegisteredRuntime{" +
+                "serviceName=" + serviceName +
+                ", instanceId=" + instanceId +
+                ", adminPort=" + adminPort +
+                ", lastTouch=" + lastTouch +
+                ", applicationPorts=" + applicationPorts +
+                '}';
+    }
 }

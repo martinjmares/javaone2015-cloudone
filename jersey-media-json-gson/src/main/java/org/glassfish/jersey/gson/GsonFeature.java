@@ -99,7 +99,6 @@ public class GsonFeature implements Feature {
                 }
             });
         }
-
         return true;
     }
 }
