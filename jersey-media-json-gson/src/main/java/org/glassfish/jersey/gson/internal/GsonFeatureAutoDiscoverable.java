@@ -47,7 +47,7 @@ import javax.annotation.Priority;
 import javax.ws.rs.core.FeatureContext;
 
 /**
- * Registers GsonFeature.
+ * Registers {@link GsonFeature}.
  *
  * @author Martin Mares (martin.mares at oracle.com)
  */

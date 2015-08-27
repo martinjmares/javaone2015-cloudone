@@ -76,12 +76,16 @@ import java.lang.reflect.Type;
 @Singleton
 @Produces("*/*")
 @Consumes("*/*")
-public class GsonProvider implements MessageBodyReader<Object>, MessageBodyWriter<Object> {
+public class GsonProvider<T> implements MessageBodyReader<T>, MessageBodyWriter<T> {
 
     @Context
     private Providers providers;
 
     private Gson gson;
+
+    public GsonProvider() {
+        gson = new Gson();
+    }
 
     private boolean supportsMediaType(MediaType mediaType) {
         if (mediaType == null) {
@@ -105,15 +109,16 @@ public class GsonProvider implements MessageBodyReader<Object>, MessageBodyWrite
                 gson = builder.create();
             }
         }
-        if (gson == null) {
-            gson = new Gson();
-        }
     }
 
     private Gson getGson() {
         return gson;
     }
 
+    /**
+     * Returns {@code true} is mediaType is one of JSON types and type is not stream.
+     */
+    @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         if (!supportsMediaType(mediaType)) {
             return false;
@@ -122,6 +127,10 @@ public class GsonProvider implements MessageBodyReader<Object>, MessageBodyWrite
                 && !Reader.class.isAssignableFrom(type);
     }
 
+    /**
+     * Returns {@code true} is mediaType is one of JSON types and type is not stream.
+     */
+    @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         if (!supportsMediaType(mediaType)) {
             return false;
@@ -130,15 +139,18 @@ public class GsonProvider implements MessageBodyReader<Object>, MessageBodyWrite
                 && !Writer.class.isAssignableFrom(type);
     }
 
-    public long getSize(Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+    @Override
+    public long getSize(T o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return -1;
     }
 
-    public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+    @Override
+    public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
         return getGson().fromJson(new InputStreamReader(entityStream), genericType);
     }
 
-    public void writeTo(Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+    @Override
+    public void writeTo(T o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
         OutputStreamWriter writer = new OutputStreamWriter(entityStream);
         getGson().toJson(o, writer);
         writer.flush();
