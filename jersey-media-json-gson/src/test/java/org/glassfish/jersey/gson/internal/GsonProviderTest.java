@@ -60,8 +60,8 @@ import static org.junit.Assert.assertTrue;
 public class GsonProviderTest {
 
     public static class A {
-        private String txt;
-        private int num;
+        private final String txt;
+        private final int num;
 
         public A(String txt, int num) {
             this.txt = txt;

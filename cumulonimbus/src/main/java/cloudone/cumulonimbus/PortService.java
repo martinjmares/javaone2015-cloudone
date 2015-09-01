@@ -1,5 +1,6 @@
 package cloudone.cumulonimbus;
 
+import cloudone.cumulonimbus.model.Cluster;
 import cloudone.cumulonimbus.model.RegisteredRuntime;
 import org.slf4j.LoggerFactory;
 
@@ -61,21 +62,6 @@ public class PortService {
                 index = from;
             }
             return index;
-        }
-    }
-
-    public class RegistrationListener implements ServiceRegistryService.RegistrationListener {
-
-        private RegistrationListener() {}
-
-        @Override
-        public void register(RegisteredRuntime runtime) throws Exception {
-            registerRuntime(runtime);
-        }
-
-        @Override
-        public void unregister(RegisteredRuntime runtime) {
-            unregisterRuntime(runtime);
         }
     }
 
@@ -172,8 +158,17 @@ public class PortService {
         return ports.get(port);
     }
 
-    RegistrationListener getNewListener() {
-        return new RegistrationListener();
+    ServiceRegistryService.RegistrationListener getNewListener() {
+        return new ServiceRegistryService.RegistrationListener() {
+                    @Override
+                    public void register(RegisteredRuntime runtime, Cluster cluster) throws Exception {
+                        registerRuntime(runtime);
+                    }
+                    @Override
+                    public void unregister(RegisteredRuntime runtime, Cluster cluster) {
+                        unregisterRuntime(runtime);
+                    }
+                };
     }
 
     static PortService init(Properties properties) throws Exception {

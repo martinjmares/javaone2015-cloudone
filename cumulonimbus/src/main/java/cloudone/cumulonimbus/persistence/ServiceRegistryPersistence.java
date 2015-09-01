@@ -116,12 +116,12 @@ public class ServiceRegistryPersistence implements ServiceRegistryService.Regist
 
 
     @Override
-    public synchronized void register(RegisteredRuntime runtime) throws Exception {
+    public synchronized void register(RegisteredRuntime runtime, Cluster cluster) throws Exception {
         dirty = true;
     }
 
     @Override
-    public synchronized void unregister(RegisteredRuntime runtime) {
+    public synchronized void unregister(RegisteredRuntime runtime, Cluster cluster) {
         if (!dirty && nextMustStore < 0) {
             nextMustStore = System.currentTimeMillis() + (60 * 1000L); //After 1 minute
         }

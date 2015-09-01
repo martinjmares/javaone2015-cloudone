@@ -43,7 +43,7 @@ public class PortServiceTest {
         props.setProperty(PortService.KEY_PORT_RANGE_ADMIN, "300-400");
         PortService ps = PortService.init(props);
         assertNotNull(ps);
-        PortService.RegistrationListener listener = ps.getNewListener();
+        ServiceRegistryService.RegistrationListener listener = ps.getNewListener();
         assertNotNull(listener);
         // Register first
         Map<String, Integer> apps = new HashMap<>();
@@ -52,18 +52,18 @@ public class PortServiceTest {
         assertEquals(new Integer(100), apps.get("one"));
         assertEquals(new Integer(101), apps.get("two"));
         RegisteredRuntime reg1 = new RegisteredRuntime(new ServiceFullName("a", "b", "1"), "sec1", 1, ps.reserveAdminPort(), apps);
-        listener.register(reg1);
+        listener.register(reg1, null);
         // Register second
         apps.put("one", ps.reserveApplicationPort());
         apps.put("two", ps.reserveApplicationPort());
         assertEquals(new Integer(102), apps.get("one"));
         assertEquals(new Integer(103), apps.get("two"));
         RegisteredRuntime reg2 = new RegisteredRuntime(new ServiceFullName("a", "b", "2"), "sec2", 2, ps.reserveAdminPort(), apps);
-        listener.register(reg2);
+        listener.register(reg2, null);
         //Multi registration
         try {
             RegisteredRuntime reg3 = new RegisteredRuntime(reg1.getServiceName(),  "secELSE", 1, reg1.getAdminPort(), reg1.getApplicationPorts());
-            listener.register(reg3); //Can not register twice
+            listener.register(reg3, null); //Can not register twice
             assertTrue("Can not register twice same admin port", false);
         } catch (Exception e) {}
     }

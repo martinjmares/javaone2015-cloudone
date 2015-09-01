@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+    <doc xmlns:jersey="http://jersey.java.net/" jersey:generatedBy="Jersey: 2.19 2015-07-30 13:23:11"/>
+    <doc xmlns:jersey="http://jersey.java.net/" jersey:hint="This is simplified WADL with user and core resources only. To get full WADL with extended resources use the query parameter detail. Link: http://localhost:4242/application.wadl?detail=true"/>
+    <grammars/>
+    <resources base="http://localhost:4242/">
+        <resource path="/configuration">
+            <resource path="reserve-port">
+                <method id="reserve" name="GET">
+                    <request>
+                        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="scope" style="query" type="xs:string"/>
+                    </request>
+                    <response>
+                        <representation mediaType="text/plain"/>
+                    </response>
+                </method>
+            </resource>
+        </resource>
+        <resource path="/service">
+            <method id="list" name="GET">
+                <response>
+                    <representation mediaType="application/json"/>
+                </response>
+            </method>
+            <resource path="{group}/{application}/{version}">
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="application" style="template" type="xs:string"/>
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:string"/>
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="group" style="template" type="xs:string"/>
+                <method id="register" name="PUT">
+                    <response>
+                        <representation mediaType="application/json"/>
+                    </response>
+                </method>
+                <method id="listRuntimes" name="GET">
+                    <response>
+                        <representation mediaType="application/json"/>
+                    </response>
+                </method>
+            </resource>
+            <resource path="{group}/{application}/{version}/{instance}">
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="instance" style="template" type="xs:int"/>
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="application" style="template" type="xs:string"/>
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:string"/>
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="group" style="template" type="xs:string"/>
+                <method id="getPortInfo" name="GET">
+                    <response>
+                        <representation mediaType="application/json"/>
+                    </response>
+                </method>
+                <method id="unregister" name="DELETE">
+                    <request>
+                        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="seccode" style="query" type="xs:string"/>
+                    </request>
+                </method>
+            </resource>
+        </resource>
+        <resource path="/lifecycle">
+            <resource path="uptime">
+                <method id="uptime" name="GET">
+                    <response>
+                        <representation mediaType="text/plain"/>
+                    </response>
+                </method>
+            </resource>
+            <resource path="shutdown">
+                <method id="shutDown" name="GET">
+                    <response>
+                        <representation mediaType="text/plain"/>
+                    </response>
+                </method>
+            </resource>
+        </resource>
+    </resources>
+</application>

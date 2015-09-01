@@ -3,6 +3,7 @@ package cloudone.cumulonimbus;
 import cloudone.C1Application;
 import cloudone.C1Services;
 import cloudone.cumulonimbus.resources.ConfigurationResource;
+import cloudone.cumulonimbus.resources.ResourceDiscoveryResource;
 import cloudone.internal.resources.LifecycleResource;
 import cloudone.cumulonimbus.resources.ServiceResource;
 import cloudone.internal.provider.DurationMessageBodyWriter;
@@ -39,6 +40,7 @@ public class CumulonimbusApp extends C1Application {
                 LifecycleResource.class,
                 ConfigurationResource.class,
                 ServiceResource.class,
+                ResourceDiscoveryResource.class,
                 DurationMessageBodyWriter.class
         }));
     }
@@ -54,7 +56,8 @@ public class CumulonimbusApp extends C1Application {
         }
         Properties properties = loadConfiguration(cumulonimbusDir);
         PortService portService = PortService.init(properties);
-        ServiceRegistryService.init(cumulonimbusDir, portService.getNewListener());
+        ResourceRegistryService resourceRegistry = ResourceRegistryService.getInstance();
+        ServiceRegistryService.init(cumulonimbusDir, portService.getNewListener(), resourceRegistry.getNewListener());
     }
 
     private Properties loadConfiguration(File cumulonimbusDir) throws Exception {

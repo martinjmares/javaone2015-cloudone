@@ -1,6 +1,7 @@
 package cloudone.cumulonimbus.model;
 
 import cloudone.ServiceFullName;
+import cloudone.internal.dto.ApplicationCluster;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,5 +81,13 @@ public class Cluster {
 
     public String toString() {
         return "Cluster{" + fullName + " - " + runtimes.size() + "}";
+    }
+
+    public ApplicationCluster toApplicationCluster(String applicationName) {
+        ApplicationCluster result = new ApplicationCluster(fullName, applicationName);
+        for (RegisteredRuntime runtime : runtimes) {
+            result.addPort(runtime.getApplicationPort(applicationName));
+        }
+        return result;
     }
 }

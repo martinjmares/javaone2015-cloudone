@@ -24,12 +24,12 @@ public class ServiceRegistryServiceTest {
         public int counter = 0;
 
         @Override
-        public void register(RegisteredRuntime runtime) throws Exception {
+        public void register(RegisteredRuntime runtime, Cluster cluster) throws Exception {
             counter++;
         }
 
         @Override
-        public void unregister(RegisteredRuntime runtime) {
+        public void unregister(RegisteredRuntime runtime, Cluster cluster) {
             counter--;
         }
     }
@@ -48,11 +48,11 @@ public class ServiceRegistryServiceTest {
         // 2nd listener
         ServiceRegistryService.RegistrationListener listener2 = new ServiceRegistryService.RegistrationListener() {
                             @Override
-                            public void register(RegisteredRuntime runtime) throws Exception {
+                            public void register(RegisteredRuntime runtime, Cluster cluster) throws Exception {
                                 throw new Exception();
                             }
                             @Override
-                            public void unregister(RegisteredRuntime runtime) {
+                            public void unregister(RegisteredRuntime runtime, Cluster cluster) {
                             }
                         };
         service.addRegistrationListener(listener2);
