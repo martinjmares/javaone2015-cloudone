@@ -65,7 +65,8 @@ public class ResourceRegistryService {
     }
 
     private void doLoadServiceContract(final ApplicationFullName appFullName, final int port) {
-        if (register.containsKey(appFullName)) {
+        LOGGER.info("doLoadServiceContract(" + appFullName + ", " + port + ")");
+        if (!register.containsKey(appFullName)) {
             try {
                 WebTarget target = client.target("http://localhost:" + port);
                 ServiceRestResources serviceRestResources = target.path("application.wadl")
@@ -76,17 +77,18 @@ public class ResourceRegistryService {
                 for (RestResourceDescription restResourceDescription : serviceRestResources.getResources()) {
                     revRegister
                             .computeIfAbsent(restResourceDescription,
-                                    rrd -> Collections.unmodifiableSet(new HashSet<>()))
+                                    rrd -> Collections.synchronizedSet(new HashSet<>()))
                             .add(appFullName);
                 }
                 updateClients(serviceRestResources);
             } catch (Exception e) {
-                LOGGER.warn("Cannot load REST contract for " + appFullName);
+                LOGGER.warn("doLoadServiceContract(" + appFullName + "): Cannot load wadl!", e);
             }
         }
     }
 
     private void doUnloadServiceContract(RegisteredRuntime registeredRuntime) {
+        LOGGER.info("doUnloadServiceContract(" + registeredRuntime + ")");
         for (String app : registeredRuntime.getApplicationPorts().keySet()) {
             final ApplicationFullName appFullName = new ApplicationFullName(registeredRuntime.getServiceName(), app);
             ServiceRestResources serviceRestResources = register.remove(appFullName);

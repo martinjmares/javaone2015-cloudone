@@ -75,7 +75,7 @@ public class Cluster {
         return fullName;
     }
 
-    public List<RegisteredRuntime> getRuntimes() {
+    public synchronized List<RegisteredRuntime> getRuntimes() {
         return Collections.unmodifiableList(runtimes);
     }
 
@@ -89,5 +89,21 @@ public class Cluster {
             result.addPort(runtime.getApplicationPort(applicationName));
         }
         return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Cluster)) return false;
+
+        Cluster cluster = (Cluster) o;
+
+        return !(fullName != null ? !fullName.equals(cluster.fullName) : cluster.fullName != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return fullName != null ? fullName.hashCode() : 0;
     }
 }

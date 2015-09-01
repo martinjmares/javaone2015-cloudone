@@ -114,7 +114,7 @@ public class ServiceRegistryService {
         if (cluster != null) {
             if (cluster.unRegister(runtime)) {
                 if (cluster.getRuntimes().size() == 0) {
-                    registry.remove(cluster);
+                    registry.remove(cluster.getFullName());
                 }
                 fireUnRegister(runtime, cluster);
                 LOGGER.info("UNREGISTERED: " + runtime.toRuntimeName());
@@ -161,7 +161,7 @@ public class ServiceRegistryService {
             }
         }
         //Load from file
-        ServiceRegistryPersistence serviceRegistryPersistence = new ServiceRegistryPersistence(storeFile, INSTANCE, 5000L);
+        ServiceRegistryPersistence serviceRegistryPersistence = new ServiceRegistryPersistence(storeFile, INSTANCE);
         for (Cluster cluster : serviceRegistryPersistence.loadClusters()) {
             INSTANCE.registerClusterInternal(cluster);
         }

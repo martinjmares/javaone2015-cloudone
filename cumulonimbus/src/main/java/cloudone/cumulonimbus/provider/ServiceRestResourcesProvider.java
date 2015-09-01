@@ -21,7 +21,7 @@ import java.lang.reflect.Type;
  *
  * @author Martin Mares (martin.mares at oracle.com)
  */
-@Consumes("text/plain")
+@Consumes("application/vnd.sun.wadl+xml")
 public class ServiceRestResourcesProvider implements MessageBodyReader<ServiceRestResources> {
 
     private static final SAXParserFactory parserFactor = SAXParserFactory.newInstance();

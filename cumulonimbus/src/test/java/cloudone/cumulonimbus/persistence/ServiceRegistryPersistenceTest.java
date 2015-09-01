@@ -57,7 +57,7 @@ public class ServiceRegistryPersistenceTest {
     @Test
     public void testStore() throws Exception {
         ServiceRegistryService service = ServiceRegistryServiceTest.getService();
-        ServiceRegistryPersistence persistence = new ServiceRegistryPersistence(new File(dir, "strg.json"), 1, service, true);
+        ServiceRegistryPersistence persistence = new ServiceRegistryPersistence(new File(dir, "strg.json"), service, true);
         service.addRegistrationListener(persistence);
         Map<String, Integer> apps = new HashMap<>();
         apps.put("one", 200);

@@ -28,73 +28,56 @@ import java.util.concurrent.TimeUnit;
 public class ServiceRegistryPersistence implements ServiceRegistryService.RegistrationListener {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ServiceRegistryPersistence.class);
+    private static final long INTERVAL = 3L; //seconds
 
     private final File storageFile;
-    private final long interval;
+    private final boolean manual;
     private final Gson gson;
     private final ServiceRegistryService serviceRegistryService;
-    private volatile boolean dirty = false;
-    private volatile long nextMustStore = -1;
+    private volatile boolean scheduled = false;
 
     ServiceRegistryPersistence(final File storageFile,
-                               final long interval,
                                final ServiceRegistryService serviceRegistryService,
                                final boolean manual) {
         this.storageFile = storageFile;
+        this.manual = manual;
         this.serviceRegistryService = serviceRegistryService;
         this.gson = (new GsonBuilder())
                 .setPrettyPrinting()
                 .create();
-        if (interval <= 0) {
-            this.interval = 1;
-        } else {
-            this.interval = interval;
-        }
-        if (!manual) {
-            scheduleNext();
-        }
     }
 
     public ServiceRegistryPersistence(final File storageFile,
-                                      final ServiceRegistryService serviceRegistryService,
-                                      final long interval) {
-        this(storageFile, interval, serviceRegistryService, false);
+                                      final ServiceRegistryService serviceRegistryService) {
+        this(storageFile, serviceRegistryService, false);
     }
 
     private void scheduleNext() {
-        C1Services.getInstance().getScheduledExecutorService()
-                .schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        storeAndScheduleNext();
-                    }
-                }, interval, TimeUnit.MILLISECONDS);
+        C1Services
+                .getInstance()
+                .getScheduledExecutorService()
+                .schedule(() -> {
+                                try {
+                                    store();
+                                } catch (IOException e) {
+                                    LOGGER.warn("Cannot store cluster data!", e);
+                                } finally {
+                                    scheduled = false;
+                                }
+                            }, INTERVAL, TimeUnit.SECONDS);
     }
 
-    void store() throws IOException {
-        boolean act = false;
-        synchronized (this) {
-            if (dirty || nextMustStore > System.currentTimeMillis()) {
-                act = true;
-                dirty = false;
-                nextMustStore = -1;
+    synchronized void store() throws IOException {
+        LOGGER.info("Storing service registry.");
+        Collection<Cluster> clusters = new ArrayList<>(serviceRegistryService.getClusters());
+        if (clusters.isEmpty()) {
+            if (storageFile.exists()) {
+                storageFile.delete();
             }
-        }
-        if (act) {
-            LOGGER.info("Storing service registry.");
+        } else {
             try (FileWriter writer = new FileWriter(storageFile)) {
-                gson.toJson(serviceRegistryService.getClusters(), writer);
+                gson.toJson(clusters, writer);
             }
-        }
-    }
-
-    private synchronized void storeAndScheduleNext() {
-        try {
-            store();
-        } catch (Throwable thr) {
-            LOGGER.warn("Can not store service registry!", thr);
-        } finally {
-            scheduleNext();
         }
     }
 
@@ -116,14 +99,15 @@ public class ServiceRegistryPersistence implements ServiceRegistryService.Regist
 
 
     @Override
-    public synchronized void register(RegisteredRuntime runtime, Cluster cluster) throws Exception {
-        dirty = true;
+    public synchronized void register(RegisteredRuntime runtime, Cluster cluster) {
+        if (!scheduled && !manual) {
+            scheduleNext();
+            scheduled = true;
+        }
     }
 
     @Override
     public synchronized void unregister(RegisteredRuntime runtime, Cluster cluster) {
-        if (!dirty && nextMustStore < 0) {
-            nextMustStore = System.currentTimeMillis() + (60 * 1000L); //After 1 minute
-        }
+        register(runtime, cluster); //The same behavior
     }
 }
