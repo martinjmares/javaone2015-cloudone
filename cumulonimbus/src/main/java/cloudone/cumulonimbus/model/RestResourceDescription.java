@@ -7,24 +7,20 @@ package cloudone.cumulonimbus.model;
  */
 public class RestResourceDescription {
 
-    public enum Method {
-        POT, POST, PUT, DELETE, GET, OPTIONS;
-    }
-
-    private Method method;
+    private HttpMethod method;
     private String path;
 
-    public RestResourceDescription(Method method, String path) {
+    public RestResourceDescription(HttpMethod method, String path) {
         this.method = method;
         this.path = path;
     }
 
     public RestResourceDescription(String method, String path) {
-        this.method = Method.valueOf(method);
+        this.method = HttpMethod.valueOf(method);
         this.path = path;
     }
 
-    public Method getMethod() {
+    public HttpMethod getMethod() {
         return method;
     }
 

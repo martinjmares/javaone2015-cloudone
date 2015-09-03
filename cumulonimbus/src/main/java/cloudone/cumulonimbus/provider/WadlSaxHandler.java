@@ -1,7 +1,9 @@
 package cloudone.cumulonimbus.provider;
 
+import cloudone.cumulonimbus.model.HttpMethod;
 import cloudone.cumulonimbus.model.RestResourceDescription;
 import cloudone.cumulonimbus.model.ServiceRestResources;
+import cloudone.cumulonimbus.util.PathUtil;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -9,7 +11,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.regex.Pattern;
 
 /**
  * Process WADL file - just parts which are important for this project.
@@ -21,21 +22,21 @@ public class WadlSaxHandler extends DefaultHandler {
     private class MultiMethodResource {
 
         private final String path;
-        private final Collection<RestResourceDescription.Method> methods = new ArrayList<>();
+        private final Collection<HttpMethod> methods = new ArrayList<>();
 
         public MultiMethodResource(String path) {
-            this.path = normalizePath(path);
+            this.path = PathUtil.normalizePath(path);
         }
 
         public MultiMethodResource(MultiMethodResource mmr, String path) {
             if (mmr == null) {
-                this.path = normalizePath(path);
+                this.path = PathUtil.normalizePath(path);
             } else {
-                this.path = normalizePath(mmr.path + normalizePath(path));
+                this.path = PathUtil.normalizePath(mmr.path + PathUtil.normalizePath(path));
             }
         }
 
-        public void addMethod(RestResourceDescription.Method method) {
+        public void addMethod(HttpMethod method) {
             if (method != null) {
                 methods.add(method);
             }
@@ -43,13 +44,11 @@ public class WadlSaxHandler extends DefaultHandler {
 
         public void addMethod(String method) {
             if (method != null) {
-                addMethod(RestResourceDescription.Method.valueOf(method));
+                addMethod(HttpMethod.valueOf(method));
             }
         }
 
     }
-
-    private static final Pattern MULTISLASHES_PATTERN = Pattern.compile("/{2,}");
 
     private final Deque<MultiMethodResource> stack = new ArrayDeque<>();
     private final ArrayList<RestResourceDescription> processed = new ArrayList<>();
@@ -70,7 +69,7 @@ public class WadlSaxHandler extends DefaultHandler {
     public void endElement(String uri, String localName, String qName) {
         if ("resource".equals(qName)) {
             MultiMethodResource mmr = stack.pop();
-            for (RestResourceDescription.Method method : mmr.methods) {
+            for (HttpMethod method : mmr.methods) {
                 processed.add(new RestResourceDescription(method, mmr.path));
             }
         }
@@ -80,18 +79,4 @@ public class WadlSaxHandler extends DefaultHandler {
         return new ServiceRestResources(null, processed);
     }
 
-    private static String normalizePath(String path) {
-        if (path == null || path.length() == 0) {
-            path = "/";
-        } else if (!path.startsWith("/")) {
-            path = "/" + path.trim();
-        } else {
-            path = path.trim();
-        }
-        if (path.length() > 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-        path = MULTISLASHES_PATTERN.matcher(path).replaceAll("/");
-        return path;
-    }
 }

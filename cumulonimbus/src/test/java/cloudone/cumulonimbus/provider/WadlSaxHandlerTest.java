@@ -1,5 +1,6 @@
 package cloudone.cumulonimbus.provider;
 
+import cloudone.cumulonimbus.model.HttpMethod;
 import cloudone.cumulonimbus.model.RestResourceDescription;
 import cloudone.cumulonimbus.model.ServiceRestResources;
 import org.junit.Test;
@@ -29,11 +30,11 @@ public class WadlSaxHandlerTest {
         ServiceRestResources srr = handler.toServiceRestResource();
         assertNotNull(srr);
         assertEquals(8, srr.getResources().size());
-        assertTrue(srr.getResources().contains(new RestResourceDescription(RestResourceDescription.Method.DELETE,
+        assertTrue(srr.getResources().contains(new RestResourceDescription(HttpMethod.DELETE,
                 "/service/{group}/{application}/{version}/{instance}")));
-        assertTrue(srr.getResources().contains(new RestResourceDescription(RestResourceDescription.Method.GET,
+        assertTrue(srr.getResources().contains(new RestResourceDescription(HttpMethod.GET,
                 "/lifecycle/uptime")));
-        assertTrue(srr.getResources().contains(new RestResourceDescription(RestResourceDescription.Method.GET,
+        assertTrue(srr.getResources().contains(new RestResourceDescription(HttpMethod.GET,
                 "/service")));
     }
 }
