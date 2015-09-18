@@ -18,6 +18,7 @@ import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Management of service runtimes.
@@ -41,7 +42,7 @@ public class ServiceResource {
     @GET
     @Path("{group}/{application}/{version}")
     @Produces("application/json")
-    public Collection<Integer> listRuntimes(@PathParam("group") String group,
+    public Map<Integer, PortInfo> listPortInfos(@PathParam("group") String group,
                               @PathParam("application") String app,
                               @PathParam("version") String version) {
         ServiceFullName name = new ServiceFullName(group, app, version);
@@ -49,12 +50,7 @@ public class ServiceResource {
         if (cluster == null) {
             throw new WebApplicationException("No registered " + name + " service!", 404);
         }
-        List<RegisteredRuntime> runtimes = cluster.getRuntimes();
-        List<Integer> result = new ArrayList<>(runtimes.size());
-        for (RegisteredRuntime runtime : runtimes) {
-            result.add(runtime.getInstanceId());
-        }
-        return result;
+        return cluster.toPortInfos();
     }
 
     @PUT

@@ -1,4 +1,4 @@
-package cloudone.cumulonimbus.model;
+package cloudone.internal;
 
 import cloudone.ServiceFullName;
 
@@ -46,6 +46,6 @@ public class ApplicationFullName {
 
     @Override
     public String toString() {
-        return serviceName + ";" + applicationName;
+        return serviceName + "::" + applicationName;
     }
 }

@@ -2,9 +2,11 @@ package cloudone.cumulonimbus.model;
 
 import cloudone.ServiceFullName;
 import cloudone.internal.dto.ApplicationCluster;
+import cloudone.internal.dto.PortInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -87,6 +89,14 @@ public class Cluster {
         ApplicationCluster result = new ApplicationCluster(fullName, applicationName);
         for (RegisteredRuntime runtime : runtimes) {
             result.addPort(runtime.getApplicationPort(applicationName));
+        }
+        return result;
+    }
+
+    public Map<Integer, PortInfo> toPortInfos() {
+        Map<Integer, PortInfo> result = new HashMap<>();
+        for (RegisteredRuntime runtime : runtimes) {
+            result.put(runtime.getInstanceId(), new PortInfo(runtime.getAdminPort(), runtime.getApplicationPorts()));
         }
         return result;
     }

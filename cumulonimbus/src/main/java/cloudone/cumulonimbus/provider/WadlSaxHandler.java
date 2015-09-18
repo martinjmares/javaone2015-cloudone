@@ -29,7 +29,7 @@ public class WadlSaxHandler extends DefaultHandler {
         }
 
         public MultiMethodResource(MultiMethodResource mmr, String path) {
-            if (mmr == null) {
+            if (mmr == null || "/".equals(mmr.path)) {
                 this.path = PathUtil.normalizePath(path);
             } else {
                 this.path = PathUtil.normalizePath(mmr.path + PathUtil.normalizePath(path));

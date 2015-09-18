@@ -1,6 +1,9 @@
 package cloudone.cumulonimbus.model;
 
+import cloudone.internal.ApplicationFullName;
 import cloudone.cumulonimbus.util.PathUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -19,7 +22,6 @@ import java.util.regex.Pattern;
  * @author Martin Mares (martin.mares at oracle.com)
  */
 public class PathRegistry {
-
 
     private static class Node {
 
@@ -73,6 +75,11 @@ public class PathRegistry {
             return pathElement.hashCode();
         }
 
+        @Override
+        public String toString() {
+            return "Node{" + type + ", " + pathElement + '}';
+        }
+
         public boolean matches(String element) {
             switch (type) {
                 case EXACT:
@@ -102,7 +109,7 @@ public class PathRegistry {
                 subNodes = new HashMap<>();
                 subNodes.put(node.getPathElement(), node);
                 return node;
-            } else if (!subNodes.containsKey(node.getPathElement())) {
+            } else if (subNodes.containsKey(node.getPathElement())) {
                 return subNodes.get(node.getPathElement());
             } else {
                 subNodes.put(node.getPathElement(), node);
@@ -115,6 +122,9 @@ public class PathRegistry {
                                    final HttpMethod method,
                                    final ApplicationFullName appName) {
             if (index < path.size()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("registerToPath(" + path + ", " + index + ", " + method + ", " + appName + ")");
+                }
                 Node node = new Node(path.get(index));
                 node = addNode(node);
                 node.registerToPath(path, index + 1, method, appName);
@@ -166,7 +176,7 @@ public class PathRegistry {
                 String pathElement = path.get(index);
                 for (Node subNode : subNodes.values()) {
                     if (subNode.matches(pathElement)) {
-                        collectPossibilities(path, index + 1, method, appNames);
+                        subNode.collectPossibilities(path, index + 1, method, appNames);
                     }
                 }
             } else if (registry != null) {
@@ -176,6 +186,8 @@ public class PathRegistry {
         }
 
     }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathRegistry.class);
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Node root = new Node();

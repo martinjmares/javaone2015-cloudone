@@ -1,5 +1,7 @@
 package cloudone.cumulonimbus.model;
 
+import cloudone.internal.ApplicationFullName;
+
 import java.util.ArrayList;
 import java.util.List;
 

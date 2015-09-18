@@ -1,6 +1,7 @@
 package cloudone.internal.dto;
 
 import cloudone.ServiceFullName;
+import cloudone.internal.ApplicationFullName;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -12,21 +13,22 @@ import java.util.TreeSet;
  */
 public class ApplicationCluster {
 
-    private final ServiceFullName serviceFullName;
-    private final String applicationName;
+    private final ApplicationFullName fullName;
     private final Set<Integer> ports = new TreeSet<>();
 
     public ApplicationCluster(ServiceFullName serviceFullName, String applicationName) {
-        this.serviceFullName = serviceFullName;
-        this.applicationName = applicationName;
+        this(new ApplicationFullName(serviceFullName, applicationName));
     }
 
-    public ServiceFullName getServiceFullName() {
-        return serviceFullName;
+    public ApplicationCluster(ApplicationFullName fullName) {
+        if (fullName == null) {
+            throw new IllegalArgumentException("ApplicationFullName must be defined!");
+        }
+        this.fullName = fullName;
     }
 
-    public String getApplicationName() {
-        return applicationName;
+    public ApplicationFullName getFullName() {
+        return fullName;
     }
 
     public Set<Integer> getPorts() {
@@ -39,8 +41,7 @@ public class ApplicationCluster {
 
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append(serviceFullName).append("::").append(applicationName);
-        result.append(" - ");
+        result.append(fullName).append(" - ");
         boolean first = true;
         for (Integer port : ports) {
             if (first) {
@@ -60,19 +61,15 @@ public class ApplicationCluster {
 
         ApplicationCluster that = (ApplicationCluster) o;
 
-        if (serviceFullName != null ? !serviceFullName.equals(that.serviceFullName) : that.serviceFullName != null)
-            return false;
-        if (applicationName != null ? !applicationName.equals(that.applicationName) : that.applicationName != null)
-            return false;
-        return !(ports != null ? !ports.equals(that.ports) : that.ports != null);
+        if (!fullName.equals(that.fullName)) return false;
+        return ports.equals(that.ports);
 
     }
 
     @Override
     public int hashCode() {
-        int result = serviceFullName != null ? serviceFullName.hashCode() : 0;
-        result = 31 * result + (applicationName != null ? applicationName.hashCode() : 0);
-        result = 31 * result + (ports != null ? ports.hashCode() : 0);
+        int result = fullName.hashCode();
+        result = 31 * result + ports.hashCode();
         return result;
     }
 }

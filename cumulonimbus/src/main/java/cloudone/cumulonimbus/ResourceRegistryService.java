@@ -1,7 +1,9 @@
 package cloudone.cumulonimbus;
 
-import cloudone.cumulonimbus.model.ApplicationFullName;
+import cloudone.internal.ApplicationFullName;
 import cloudone.cumulonimbus.model.Cluster;
+import cloudone.cumulonimbus.model.HttpMethod;
+import cloudone.cumulonimbus.model.PathRegistry;
 import cloudone.cumulonimbus.model.RegisteredRuntime;
 import cloudone.cumulonimbus.model.RestResourceDescription;
 import cloudone.cumulonimbus.model.ServiceRestResources;
@@ -12,7 +14,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,12 +35,10 @@ public class ResourceRegistryService {
     private final ExecutorService executor;
 
     private final ConcurrentMap<ApplicationFullName, ServiceRestResources> register = new ConcurrentHashMap<>();
-    private final ConcurrentMap<RestResourceDescription, Set<ApplicationFullName>> revRegister = new ConcurrentHashMap<>();
-    //private final ConcurrentMap<RestResourceDescription, Set<String>> requested = new ConcurrentHashMap<>();
+    private final PathRegistry pathRegistry = new PathRegistry();
 
     public ResourceRegistryService() {
         client = ClientBuilder.newClient()
-                //.register(GsonFeature.class)
                 .register(ServiceRestResourcesProvider.class);
         executor = Executors.newSingleThreadExecutor();
     }
@@ -59,7 +58,11 @@ public class ResourceRegistryService {
             }
             @Override
             public void unregister(final RegisteredRuntime runtime, final Cluster cluster) {
-                executor.submit(() -> doUnloadServiceContract(runtime));
+                executor.submit(() ->
+                {if (cluster.getRuntimes().isEmpty()
+                        || cluster.getRuntimes().size() == 1 && cluster.getRuntimes().get(0).equals(runtime)) {
+                    doUnloadServiceContract(runtime);
+                }});
             }
         };
     }
@@ -75,12 +78,8 @@ public class ResourceRegistryService {
                 serviceRestResources = new ServiceRestResources(appFullName, serviceRestResources.getResources());
                 register.put(appFullName, serviceRestResources);
                 for (RestResourceDescription restResourceDescription : serviceRestResources.getResources()) {
-                    revRegister
-                            .computeIfAbsent(restResourceDescription,
-                                    rrd -> Collections.synchronizedSet(new HashSet<>()))
-                            .add(appFullName);
+                    pathRegistry.register(restResourceDescription.getPath(), restResourceDescription.getMethod(), appFullName);
                 }
-                updateClients(serviceRestResources);
             } catch (Exception e) {
                 LOGGER.warn("doLoadServiceContract(" + appFullName + "): Cannot load wadl!", e);
             }
@@ -92,25 +91,12 @@ public class ResourceRegistryService {
         for (String app : registeredRuntime.getApplicationPorts().keySet()) {
             final ApplicationFullName appFullName = new ApplicationFullName(registeredRuntime.getServiceName(), app);
             ServiceRestResources serviceRestResources = register.remove(appFullName);
-            if (serviceRestResources != null) {
-                for (RestResourceDescription restResourceDescription : serviceRestResources.getResources()) {
-                    Set<ApplicationFullName> applicationFullNames = revRegister.get(restResourceDescription);
-                    applicationFullNames.remove(appFullName);
-                    if (applicationFullNames.size() == 0) {
-                        revRegister.remove(restResourceDescription);
-                    }
-                }
-            }
+            pathRegistry.unregister(appFullName);
         }
     }
 
-    private void updateClients(ServiceRestResources resources) {
-        //TODO
-    }
-
-    public Set<ApplicationFullName> getApplicationsForResource(RestResourceDescription resource) {
-        //TODO: Update this
-        return Collections.unmodifiableSet(revRegister.get(resource));
+    public Set<ApplicationFullName> getApplicationsForResource(final String path, final HttpMethod method) {
+        return pathRegistry.get(path, method);
     }
 
     public List<RestResourceDescription> getResourcesForApplication(ApplicationFullName appName) {

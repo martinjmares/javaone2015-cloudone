@@ -1,5 +1,8 @@
 package cloudone.cumulonimbus.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +15,7 @@ import java.util.regex.Pattern;
  */
 public class PathUtil {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathUtil.class);
     private static final Pattern MULTISLASHES_PATTERN = Pattern.compile("/{2,}");
 
     public static String normalizePath(String path) {
@@ -100,6 +104,9 @@ public class PathUtil {
         }
         if (standard.length() > 0) {
             result.add(standard.toString());
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("parsePath(" + path + ", " + toRegexp + ") -> " + result);
         }
         return result;
     }

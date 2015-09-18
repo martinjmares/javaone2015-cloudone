@@ -89,6 +89,36 @@ public class ServiceFullName {
         return result.toString();
     }
 
+    public boolean isAbsolute() {
+        return groupId != null && artifactId != null && version != null;
+    }
+
+    /**
+     * Returns {@code true} if groupId and artefactId are specific, version can be non-defined.
+     */
+    public boolean isOneService() {
+        return groupId != null && artifactId != null;
+    }
+
+    /** Test if provided service full name is accepted by this service full name specification.
+     * Provided parameter must be absolute and equal with this full name in all localy specified fields.
+     */
+    public boolean accepts(ServiceFullName absoluteService) {
+        if (!absoluteService.isAbsolute()) {
+            return false;
+        }
+        if (groupId != null && !groupId.equals(absoluteService.groupId)) {
+            return false;
+        }
+        if (artifactId != null && !artifactId.equals(absoluteService.artifactId)) {
+            return false;
+        }
+        if (version != null && !version.equals(absoluteService.version)) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -9,4 +9,4 @@ if [ ! -d "$JARPATH" ]; then
 fi
 
 
-java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -jar "$JARPATH"/cumulonimbus-*.jar $@
+java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -jar "$JARPATH"/solar-system-*.jar $@

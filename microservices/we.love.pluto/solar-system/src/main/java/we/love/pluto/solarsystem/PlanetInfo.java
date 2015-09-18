@@ -7,11 +7,11 @@ package we.love.pluto.solarsystem;
  */
 public class PlanetInfo {
 
-    private String name;
+    private final String name;
     //Radius in km
-    private int radius;
+    private final int radius;
     //Sidreal rotation period in hours
-    private int rotationPeriod;
+    private final int rotationPeriod;
 
     public PlanetInfo(String name, int radius, int rotationPeriod) {
         this.name = name;
@@ -19,30 +19,17 @@ public class PlanetInfo {
         this.rotationPeriod = rotationPeriod;
     }
 
-    public PlanetInfo() {
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public int getRadius() {
         return radius;
-    }
-
-    public void setRadius(int radius) {
-        this.radius = radius;
     }
 
     public int getRotationPeriod() {
         return rotationPeriod;
     }
 
-    public void setRotationPeriod(int rotationPeriod) {
-        this.rotationPeriod = rotationPeriod;
-    }
 }

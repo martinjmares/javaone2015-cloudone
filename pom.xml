@@ -16,6 +16,7 @@
         <module>nimbostratus</module>
         <module>stratus</module>
         <module>microservices/we.love.pluto/solar-system</module>
+        <module>microservices/we.love.pluto/info-proxy</module>
     </modules>
 
     <build>

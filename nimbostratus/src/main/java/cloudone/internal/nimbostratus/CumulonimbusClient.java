@@ -2,6 +2,7 @@ package cloudone.internal.nimbostratus;
 
 import cloudone.C1Services;
 import cloudone.ServiceFullName;
+import cloudone.internal.ApplicationFullName;
 import cloudone.internal.dto.PortInfo;
 import cloudone.internal.dto.RuntimeIdAndSecCode;
 import org.glassfish.jersey.gson.GsonFeature;
@@ -12,12 +13,16 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -123,6 +128,26 @@ public class CumulonimbusClient {
                     .delete();
         });
         registration = null;
+    }
+
+    public List<ApplicationFullName> getApplicationsForPath(String path, String method) throws RuntimeException {
+        return cumulonimbusCall(target -> {
+            return target.path("resource-discovery")
+                    .queryParam("path", path)
+                    .queryParam("method", method)
+                    .request(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .get(new GenericType<ArrayList<ApplicationFullName>>(){});
+        });
+    }
+
+    public HashMap<Integer, PortInfo> getServicePorts(ServiceFullName serviceName) throws RuntimeException {
+        return cumulonimbusCall(target -> {
+            return addServiceFullName(target.path("service"), serviceName)
+                    .request(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .get(new GenericType<HashMap<Integer, PortInfo>>() {});
+        });
     }
 
     public static CumulonimbusClient getInstance() {
