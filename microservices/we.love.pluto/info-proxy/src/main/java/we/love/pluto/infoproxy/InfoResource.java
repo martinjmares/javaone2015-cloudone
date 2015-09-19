@@ -35,4 +35,30 @@ public class InfoResource {
                                 .get(Info.class);
         return info.toString();
     }
+
+    @Path("star/{name}")
+    @GET
+    @Produces("text/plain")
+    public String getStarInfo(@PathParam("name") String name) {
+        LOGGER.info("getStarInfo(" + name + ")");
+        Info info = client.target(new ServiceFullName("we.love.pluto", "milky-way", null))
+                .path("universe/{name}")
+                .resolveTemplate("name", name)
+                .anyOK()
+                .get(Info.class);
+        return info.toString();
+    }
+
+    @Path("object/{name}")
+    @GET
+    @Produces("text/plain")
+    public String getObjectInfo(@PathParam("name") String name) {
+        LOGGER.info("getObjectInfo(" + name + ")");
+        Info info = client.target()
+                .path("universe/{name}")
+                .resolveTemplate("name", name)
+                .anyOK()
+                .get(Info.class);
+        return info.toString();
+    }
 }
