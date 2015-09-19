@@ -35,7 +35,7 @@ public class PlanetInfoService {
         if (name == null) {
             return null;
         }
-        return infos.get(name.toLowerCase());
+        return infos.get(name.replace('_', ' ').toLowerCase());
     }
 
 }
