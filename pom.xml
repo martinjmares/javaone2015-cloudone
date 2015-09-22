@@ -18,6 +18,7 @@
         <module>microservices/we.love.pluto/solar-system</module>
         <module>microservices/we.love.pluto/info-proxy</module>
         <module>microservices/we.love.pluto/milky-way</module>
+        <module>microservices/we.love.pluto/twitter-reader</module>
     </modules>
 
     <build>

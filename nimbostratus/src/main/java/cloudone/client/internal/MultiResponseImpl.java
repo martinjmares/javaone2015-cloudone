@@ -3,6 +3,8 @@ package cloudone.client.internal;
 import cloudone.C1Services;
 import cloudone.client.MultiResponse;
 import cloudone.internal.ApplicationFullName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -27,6 +29,8 @@ import java.util.concurrent.FutureTask;
  * @author Martin Mares (martin.mares at oracle.com)
  */
 public class MultiResponseImpl implements MultiResponse {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MultiResponseImpl.class);
 
     public static class IdentifiedResponseImpl implements IdentifiedResponse {
 
@@ -96,11 +100,13 @@ public class MultiResponseImpl implements MultiResponse {
         ExecutorService executorService = C1Services.getInstance().getExecutorService();
         FutureTask<Response> responseFuture = new FutureTask<>(responseCallable);
         final IdentifiedResponseImpl identifiedResponse = new IdentifiedResponseImpl(applicationFullName, responseFuture);
+        map.put(applicationFullName, identifiedResponse);
         executorService.execute(new FutureTask<Response>(responseFuture, null) {
             @Override
             protected void done() {
                 super.done();
                 synchronized (responses) {
+                    LOGGER.info("Finish call on " + identifiedResponse.getApplicationFullName());
                     responses.add(identifiedResponse);
                     nextDoneLatch.countDown();
                     nextDoneLatch = new CountDownLatch(1);

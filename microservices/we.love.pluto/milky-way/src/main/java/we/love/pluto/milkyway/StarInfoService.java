@@ -2,6 +2,7 @@ package we.love.pluto.milkyway;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Static data about stars in Milky Way.
@@ -31,4 +32,7 @@ public class StarInfoService {
         return infos.get(name.replace('_', ' ').toLowerCase());
     }
 
+    public static Set<String> getStartNames() {
+        return infos.keySet();
+    }
 }

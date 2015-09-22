@@ -106,7 +106,7 @@ public class C1WebTargetImpl implements C1WebTarget {
 
     @Override
     public AllInvoker all() {
-        throw new NotImplementedException();
+        return new AllInvokerImpl(client, getUriBuilder(), serviceFullNames);
     }
 
     private static UriBuilder setQueryParam(UriBuilder uriBuilder, String name, Object[] values) {

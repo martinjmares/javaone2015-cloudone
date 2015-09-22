@@ -2,6 +2,7 @@ package we.love.pluto.solarsystem;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Static data about Solar system planets.
@@ -36,6 +37,10 @@ public class PlanetInfoService {
             return null;
         }
         return infos.get(name.replace('_', ' ').toLowerCase());
+    }
+
+    public static Set<String> getPlanetNames() {
+        return infos.keySet();
     }
 
 }
