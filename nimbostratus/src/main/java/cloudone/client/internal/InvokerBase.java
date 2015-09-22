@@ -4,8 +4,14 @@ import cloudone.ServiceFullName;
 import cloudone.internal.ApplicationFullName;
 import cloudone.internal.nimbostratus.CumulonimbusClient;
 import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.client.JerseyInvocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +21,8 @@ import java.util.List;
  * @author Martin Mares (martin.mares at oracle.com)
  */
 public abstract class InvokerBase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InvokerBase.class);
 
     protected final JerseyClient client;
     protected final UriBuilder targetUri;
@@ -75,5 +83,54 @@ public abstract class InvokerBase {
             acceptMediaTypes.addAll(Arrays.asList(mediaTypes));
         }
         return this;
+    }
+
+    protected abstract boolean isResponseCodeAcceptable(int code);
+
+    protected Response method(ApplicationFullName targetApplication, String name, Entity<?> entity) {
+        int port = LoadBalancer.getInstance().getPort(targetApplication);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("method(" + targetApplication + ", " + name + "): port: " + port);
+        }
+        long startAt = -1;
+        if (port > 0) {
+            UriBuilder uriBuilder = targetUri
+                    .clone()
+                    .scheme("http")
+                    .host("localhost")
+                    .port(port);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("method(" + targetApplication + ", " + name + "): URI: " + uriBuilder.build());
+            }
+            try {
+                JerseyInvocation.Builder request = client.target(uriBuilder.build()).request();
+                for (MediaType accept : acceptMediaTypes) {
+                    request = request.accept(accept);
+                }
+                JerseyInvocation invocation;
+                if (entity == null) {
+                    invocation = request.build(name);
+                } else {
+                    invocation = request.build(name, entity);
+                }
+                startAt = System.currentTimeMillis();
+                Response response = invocation.invoke();
+                if (isResponseCodeAcceptable(response.getStatus())) {
+                    return response;
+                }
+            } catch (WebApplicationException wExc) {
+                if (isResponseCodeAcceptable(wExc.getResponse().getStatus())) {
+                    throw wExc;
+                }
+            } catch (Exception e) {
+                //TODO: Provide support for balancing to another endpoint (another endpoint of the same cluster).
+                LOGGER.warn("Cannot reach application " + targetApplication + " on port " + port, e);
+            } finally {
+                if (startAt > 0) {
+                    LoadBalancer.getInstance().updateStats(targetApplication, port, System.currentTimeMillis() - startAt);
+                }
+            }
+        }
+        return null;
     }
 }

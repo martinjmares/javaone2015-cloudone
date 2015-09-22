@@ -6,13 +6,11 @@ import cloudone.client.C1WebTarget;
 import cloudone.client.LaterAnyInvoker;
 import cloudone.internal.ApplicationFullName;
 import org.glassfish.jersey.client.JerseyClient;
-import org.glassfish.jersey.client.JerseyInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -152,7 +150,7 @@ public class AnyInvokerImpl extends InvokerBase implements AnyInvoker {
         return method(name, null, responseType);
     }
 
-    private boolean isResponseCodeAcceptable(int code) {
+    protected boolean isResponseCodeAcceptable(int code) {
         if (accepts != null) {
             for (C1WebTarget.CodeInterval accept : accepts) {
                 if (accept.isInInterval(code)) {
@@ -171,50 +169,10 @@ public class AnyInvokerImpl extends InvokerBase implements AnyInvoker {
             LOGGER.debug("method(" + name + ")");
         }
         List<ApplicationFullName> targetApplications = super.findTargetApplications(name);
-        LoadBalancer loadBalancer = LoadBalancer.getInstance();
         for (ApplicationFullName targetApplication : targetApplications) {
-            int port = loadBalancer.getPort(targetApplication);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("method(" + name + "): targetApplication: " + targetApplication + ", port: " + port);
-            }
-            long startAt = -1;
-            if (port > 0) {
-                UriBuilder uriBuilder = targetUri
-                        .clone()
-                        .scheme("http")
-                        .host("localhost")
-                        .port(port);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("method(" + name + "): URI: " + uriBuilder.build());
-                }
-                try {
-                    JerseyInvocation.Builder request = client.target(uriBuilder.build()).request();
-                    for (MediaType accept : super.acceptMediaTypes) {
-                        request = request.accept(accept);
-                    }
-                    JerseyInvocation invocation;
-                    if (entity == null) {
-                        invocation = request.build(name);
-                    } else {
-                        invocation = request.build(name, entity);
-                    }
-                    startAt = System.currentTimeMillis();
-                    Response response = invocation.invoke();
-                    if (isResponseCodeAcceptable(response.getStatus())) {
-                        return response;
-                    }
-                } catch (WebApplicationException wExc) {
-                    if (isResponseCodeAcceptable(wExc.getResponse().getStatus())) {
-                        throw wExc;
-                    }
-                } catch (Exception e) {
-                    //TODO:
-                    LOGGER.warn("Cannot reach application " + targetApplication + " on port " + port, e);
-                } finally {
-                    if (startAt > 0) {
-                        loadBalancer.updateStats(targetApplication, port, System.currentTimeMillis() - startAt);
-                    }
-                }
+            Response result = method(targetApplication, name, entity);
+            if (result != null) {
+                return result;
             }
         }
         return null;
