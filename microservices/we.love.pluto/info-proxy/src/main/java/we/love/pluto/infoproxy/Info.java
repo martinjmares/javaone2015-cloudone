@@ -29,7 +29,7 @@ public class Info {
         StringBuilder result = new StringBuilder();
         result.append(name).append(':').append('\n');
         result.append("    ").append("Radius:   ").append(radius).append(" km").append('\n');
-        result.append("    ").append("Rotation: ").append(radius).append(" hrs").append('\n');
+        result.append("    ").append("Rotation: ").append(rotationPeriod).append(" hrs").append('\n');
         return result.toString();
     }
 }

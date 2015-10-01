@@ -1,43 +1,32 @@
 package we.love.pluto.twitter;
 
-import cloudone.client.C1Client;
-import cloudone.client.C1ClientBuilder;
-import cloudone.client.MultiResponse;
-import org.glassfish.jersey.gson.GsonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.StreamSupport;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cloudone.C1Services;
 
 /**
  * Mocked implementation of twitter client. Reads from file. :-)
  *
  * @author Martin Mares (martin.mares at oracle.com)
  */
-public class MockedTwitter {
+class MockedTwitter extends AbstractAggregator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MockedTwitter.class);
-    private static final C1Client CLIENT = (new C1ClientBuilder()).build().register(GsonFeature.class);
 
     private final File file;
 
     private volatile long timestamp = -1;
-    private volatile String message = null;
+    private volatile Future<?> checker;
 
-    public MockedTwitter(File file) {
-        LOGGER.info("Read tweets from file " + file.getPath());
-        this.file = file;
-    }
-
-    public MockedTwitter(String fileName) {
+    MockedTwitter(String fileName) {
         if (fileName == null) {
             throw new IllegalArgumentException("Argument fileName cannot be null!");
         }
@@ -45,23 +34,37 @@ public class MockedTwitter {
         LOGGER.info("Read tweets from file " + file.getPath());
     }
 
-    public String getLastMessage() {
-        return message;
+    @Override
+    public DataAggregator start(final String... keywords) {
+        checker = C1Services.getInstance()
+                .getScheduledExecutorService()
+                .scheduleAtFixedRate(this::update, 0, 5, TimeUnit.SECONDS);
+
+        return this;
+    }
+
+    @Override
+    public void stop() {
+        if (checker != null) {
+            checker.cancel(true);
+        }
     }
 
     private String readFile() {
-        //file.lastModified();
         if (!file.exists()) {
             return null;
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (FileInputStream is = new FileInputStream(file)) {
-            byte[] buff = new byte[64];
-            int ind = -1;
-            while ((ind = is.read(buff)) > 0) {
-                baos.write(buff, 0, ind);
+            final byte[] buff = new byte[256];
+
+            int read;
+            while ((read = is.read(buff)) > 0) {
+                baos.write(buff, 0, read);
             }
             baos.close();
+
             return baos.toString();
         } catch (IOException e) {
             LOGGER.error("Cannot read file " + file.getPath(), e);
@@ -72,45 +75,13 @@ public class MockedTwitter {
     synchronized void update() {
         if (file.exists() && timestamp < file.lastModified()) {
             LOGGER.info("Reading file.");
+
             timestamp = file.lastModified();
-            message = readFile();
+            final String message = readFile();
+
             if (message != null) {
-                fireUpdate();
+                message(message);
             }
-        }
-    }
-
-    public synchronized void setMessage(String message) {
-        LOGGER.info("setMessage(): " + message);
-        timestamp = System.currentTimeMillis();
-        this.message = message;
-        if (message != null) {
-            fireUpdate();
-        }
-    }
-
-    private synchronized void fireUpdate() {
-        try {
-            LOGGER.info("fireUpdate: " + message);
-            MultiResponse responses = CLIENT.target()
-                                            .path("/universe")
-                                            .all()
-                                            .post(Entity.text(message));
-            List<String> finded = new ArrayList<>();
-            StreamSupport.stream(responses.spliterator(), false)
-                    .filter(res -> res.getError() == null && res.getResponse() != null)
-                    .map(res -> res.getResponse().readEntity(new GenericType<ArrayList<String>>() {}))
-                    .filter(strings -> strings != null)
-                    .forEach(strings -> finded.addAll(strings));
-            LOGGER.info("fireUpdate: FOUND: " + finded);
-            if (!finded.isEmpty()) {
-                CLIENT.target()
-                        .path("/spaceobject/ofthemoment")
-                        .all()
-                        .post(Entity.text(finded.get(finded.size() - 1)));
-            }
-        } catch (Exception exc) {
-            LOGGER.error("fireUpdate() exception: ", exc);
         }
     }
 }
