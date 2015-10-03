@@ -12,8 +12,6 @@ import java.util.stream.StreamSupport;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 
-import javax.annotation.PreDestroy;
-
 import org.glassfish.jersey.gson.GsonFeature;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -82,8 +80,24 @@ public class TwitterReaderApplication extends C1Application {
             throw new IllegalStateException("No twitter client is configured.");
         }
 
-        twitter.listener(new CloudOneListener())
-                .start(cmd.getOptionValue(TWITTER_KEYWORDS, "javaone").split(","));
+        twitter.listener(new CloudOneListener());
+    }
+
+    @Override
+    public void started() {
+        if (twitter != null) {
+            twitter.start(C1Services.getInstance()
+                    .getRuntimeInfo()
+                    .getCommandLine()
+                    .getOptionValue(TWITTER_KEYWORDS, "javaone").split(","));
+        }
+    }
+
+    @Override
+    public void shutDown() {
+        if (twitter != null) {
+            twitter.stop();
+        }
     }
 
     @Override
@@ -99,13 +113,6 @@ public class TwitterReaderApplication extends C1Application {
                 bind(twitter).to(DataAggregator.class);
             }
         });
-    }
-
-    @PreDestroy
-    public void release() {
-        if (twitter != null) {
-            twitter.stop();
-        }
     }
 
     private static class CloudOneListener implements DataListener {

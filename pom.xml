@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,6 +17,7 @@
         <module>microservices/we.love.pluto/solar-system</module>
         <module>microservices/we.love.pluto/info-proxy</module>
         <module>microservices/we.love.pluto/milky-way</module>
+        <module>microservices/we.love.pluto/visualizer</module>
         <module>microservices/we.love.pluto/twitter-reader</module>
     </modules>
 
@@ -100,33 +100,20 @@
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
-            <!-- jersey -->
+            <!-- Jersey -->
             <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-common</artifactId>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
                 <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-client</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-server</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-grizzly2-http</artifactId>
-                <version>${jersey.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
         </dependencies>
     </dependencyManagement>
 
     <properties>
-        <jersey.version>2.19</jersey.version>
+        <jersey.version>2.22</jersey.version>
     </properties>
 
 </project>
