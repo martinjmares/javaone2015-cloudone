@@ -146,7 +146,7 @@ public class TwitterReaderApplication extends C1Application {
 
             if (!found.isEmpty()) {
                 client.target()
-                        .path("/spaceobject/ofthemoment")
+                        .path("/space-object/of-the-moment")
                         .all()
                         .post(Entity.text(found.get(found.size() - 1)));
             }

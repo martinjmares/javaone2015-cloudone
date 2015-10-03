@@ -1,7 +1,11 @@
 package we.love.pluto.visualizer;
 
-import java.util.Map;
 import java.util.Set;
+
+import org.glassfish.jersey.gson.GsonFeature;
+import org.glassfish.jersey.media.sse.SseFeature;
+
+import com.google.common.collect.Sets;
 
 import cloudone.C1Application;
 
@@ -12,11 +16,7 @@ public class VisualizerApplication extends C1Application {
 
     @Override
     public Set<Class<?>> getClasses() {
-        return super.getClasses();
-    }
-
-    @Override
-    public Map<String, Object> getProperties() {
-        return super.getProperties();
+        return Sets.newHashSet(VisualizerResource.class, SpaceObjectResource.class,
+                SseFeature.class, GsonFeature.class);
     }
 }
