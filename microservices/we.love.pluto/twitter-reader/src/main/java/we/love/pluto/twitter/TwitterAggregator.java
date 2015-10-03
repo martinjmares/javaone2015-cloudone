@@ -13,28 +13,48 @@ import com.twitter.hbc.core.processor.StringDelimitedProcessor;
 import com.twitter.hbc.httpclient.auth.Authentication;
 import com.twitter.hbc.httpclient.auth.OAuth1;
 import com.twitter.hbc.twitter4j.Twitter4jStatusClient;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloudone.C1Services;
 import twitter4j.Status;
 import twitter4j.StatusAdapter;
 
 /**
- * TODO M: Authentication.
+ * @author Michal Gajdos
  */
-class TwitterAggregator extends AbstractAggregator {
+final class TwitterAggregator extends AbstractAggregator {
+
+    private final String consumerKey;
+    private final String consumerSecret;
+    private final String token;
+    private final String tokenSecret;
 
     private volatile Twitter4jStatusClient client;
-    private volatile String lastMessage;
+
+    public TwitterAggregator(final String consumerKey,
+                             final String consumerSecret,
+                             final String token,
+                             final String tokenSecret) {
+        checkNotNull(consumerKey);
+        checkNotNull(consumerSecret);
+        checkNotNull(token);
+        checkNotNull(tokenSecret);
+
+        this.consumerKey = consumerKey;
+        this.consumerSecret = consumerSecret;
+        this.token = token;
+        this.tokenSecret = tokenSecret;
+    }
 
     @Override
     public TwitterAggregator start(final String... keywords) {
         final BlockingQueue<String> queue = new LinkedBlockingQueue<>(10000);
 
         final Authentication auth = new OAuth1(
-                "TODO",
-                "TODO",
-                "TODO",
-                "TODO");
+                consumerKey,
+                consumerSecret,
+                token,
+                tokenSecret);
 
         // Create a new BasicClient. By default gzip is enabled.
         final ClientBuilder builder = new ClientBuilder()
@@ -63,18 +83,11 @@ class TwitterAggregator extends AbstractAggregator {
         }
     }
 
-    @Override
-    public String lastMessage() {
-        return lastMessage;
-    }
-
     private class TwitterMessageListener extends StatusAdapter {
 
         @Override
         public void onStatus(final Status status) {
-            lastMessage = status.getText();
-
-            listeners().forEach(listener -> listener.onNext(lastMessage));
+            message(status.getText());
         }
     }
 }

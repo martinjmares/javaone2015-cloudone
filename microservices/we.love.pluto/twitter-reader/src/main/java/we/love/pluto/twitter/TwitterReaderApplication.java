@@ -1,9 +1,12 @@
 package we.love.pluto.twitter;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import javax.ws.rs.client.Entity;
@@ -15,6 +18,7 @@ import org.glassfish.jersey.gson.GsonFeature;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,57 +31,59 @@ import cloudone.client.MultiResponse;
 
 /**
  * @author Martin Mares (martin.mares at oracle.com)
+ * @author Michal Gajdos
  */
 public class TwitterReaderApplication extends C1Application {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TwitterReaderApplication.class);
-    private static final String FILE_OPTION = "file";
+    private static final String MOCK_FILE_OPTION = "mockFile";
+    private static final String TWITTER_FILE_OPTION = "twitterApiFile";
+    private static final String TWITTER_KEYWORDS = "keywords";
 
     private DataAggregator twitter;
 
     @Override
     public Options getOptions() {
-        // TODO M: Options - more possibilities.
-
         return new Options()
-                .addOption(null, FILE_OPTION, true, "File with tweets");
+                .addOption(null, MOCK_FILE_OPTION, true, "(Mock) Twitter file with tweets.")
+                .addOption(null, TWITTER_FILE_OPTION, true, "Twitter API properties (Consumer and Access tokens).")
+                .addOption(null, TWITTER_KEYWORDS, true, "Keywords to look for in the twitter stream.");
     }
 
     @Override
     public void init() throws Exception {
-        final String fileName = C1Services.getInstance().getRuntimeInfo()
-                .getCommandLine()
-                .getOptionValue(FILE_OPTION);
+        final CommandLine cmd = C1Services.getInstance().getRuntimeInfo().getCommandLine();
 
-        // TODO M: Aggregator.
-        if (fileName == null) {
-            twitter = new TwitterAggregator();
-        } else {
-            twitter = new MockedTwitter(fileName);
+        // Mock Twitter.
+        final String mockFile = cmd.getOptionValue(MOCK_FILE_OPTION);
+        final DataAggregator mockTwitter = mockFile == null ? null : new MockedTwitter(mockFile);
+
+        // Real Twitter.
+        final String apiFileName = cmd.getOptionValue(TWITTER_FILE_OPTION, "twitter-api.properties");
+        final File apiFile = new File(apiFileName);
+        DataAggregator realTwitter = null;
+        if (apiFile.exists()) {
+            final Properties properties = new Properties();
+            properties.load(new FileInputStream(apiFile));
+
+            realTwitter = new TwitterAggregator(
+                    properties.getProperty("twitter.consumer.secret"),
+                    properties.getProperty("twitter.consumer.key"),
+                    properties.getProperty("twitter.token.secret"),
+                    properties.getProperty("twitter.token.key"));
         }
 
-        // TODO M: Make this more presentable.
-        final C1Client client = new C1ClientBuilder().build().register(GsonFeature.class);
-        twitter.listener(message -> {
-            LOGGER.info("fireUpdate: " + message);
-            MultiResponse responses = client.target()
-                    .path("/universe")
-                    .all()
-                    .post(Entity.text(message));
-            List<String> found = new ArrayList<>();
-            StreamSupport.stream(responses.spliterator(), false)
-                    .filter(res -> res.getError() == null && res.getResponse() != null)
-                    .map(res -> res.getResponse().readEntity(new GenericType<ArrayList<String>>() {}))
-                    .filter(strings -> strings != null)
-                    .forEach(strings -> found.addAll(strings));
-            LOGGER.info("fireUpdate: FOUND: " + found);
-            if (!found.isEmpty()) {
-                client.target()
-                        .path("/spaceobject/ofthemoment")
-                        .all()
-                        .post(Entity.text(found.get(found.size() - 1)));
-            }
-        }).start("oracle"); // TODO M: configurable keywords.
+        if (realTwitter != null && mockTwitter != null) {
+            twitter = new CombinedAggregator(realTwitter, mockTwitter);
+        } else if (realTwitter != null) {
+            twitter = realTwitter;
+        } else if (mockTwitter != null) {
+            twitter = mockTwitter;
+        } else {
+            throw new IllegalStateException("No twitter client is configured.");
+        }
+
+        twitter.listener(new CloudOneListener())
+                .start(cmd.getOptionValue(TWITTER_KEYWORDS, "javaone").split(","));
     }
 
     @Override
@@ -99,6 +105,44 @@ public class TwitterReaderApplication extends C1Application {
     public void release() {
         if (twitter != null) {
             twitter.stop();
+        }
+    }
+
+    private static class CloudOneListener implements DataListener {
+
+        private static final Logger LOGGER = LoggerFactory.getLogger(CloudOneListener.class);
+
+        private static final C1Client client = new C1ClientBuilder().build().register(GsonFeature.class);
+
+        @Override
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        public void onNext(final String message) {
+            LOGGER.info("onNext: " + message);
+
+            // Ping everyone in the universe and see if they want to hear news.
+            final MultiResponse responses = client.target()
+                    .path("/universe")
+                    .all()
+                    .post(Entity.text(message));
+
+            final List<String> found = StreamSupport.stream(responses.spliterator(), false)
+                    // Not interested in error states ...
+                    .filter(res -> res.getError() == null)
+                    // ... or response-less answers. TODO ???
+                    .filter(response -> response.getResponse() != null)
+                    // Read response as list of strings.
+                    .flatMap(response -> response.getResponse().readEntity(new GenericType<List<String>>() {}).stream())
+                    // Make a list from the stream.
+                    .collect(Collectors.toList());
+
+            LOGGER.info("onNext: Found Responses in the cloud - " + found);
+
+            if (!found.isEmpty()) {
+                client.target()
+                        .path("/spaceobject/ofthemoment")
+                        .all()
+                        .post(Entity.text(found.get(found.size() - 1)));
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * @author Michal Gajdos
  */
 abstract class AbstractAggregator implements DataAggregator {
 
@@ -30,7 +31,7 @@ abstract class AbstractAggregator implements DataAggregator {
     @Override
     public AbstractAggregator message(final String message) {
         lastMessage = message;
-        listeners().forEach(listener -> listener.onNext(message));
+        listeners.forEach(listener -> listener.onNext(message));
 
         return this;
     }

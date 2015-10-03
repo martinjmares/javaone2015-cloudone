@@ -16,8 +16,9 @@ import cloudone.C1Services;
  * Mocked implementation of twitter client. Reads from file. :-)
  *
  * @author Martin Mares (martin.mares at oracle.com)
+ * @author Michal Gajdos
  */
-class MockedTwitter extends AbstractAggregator {
+final class MockedTwitter extends AbstractAggregator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MockedTwitter.class);
 
@@ -38,7 +39,7 @@ class MockedTwitter extends AbstractAggregator {
     public DataAggregator start(final String... keywords) {
         checker = C1Services.getInstance()
                 .getScheduledExecutorService()
-                .scheduleAtFixedRate(this::update, 0, 5, TimeUnit.SECONDS);
+                .scheduleAtFixedRate(this::updateStatus, 0, 5, TimeUnit.SECONDS);
 
         return this;
     }
@@ -72,7 +73,7 @@ class MockedTwitter extends AbstractAggregator {
         }
     }
 
-    synchronized void update() {
+    synchronized void updateStatus() {
         if (file.exists() && timestamp < file.lastModified()) {
             LOGGER.info("Reading file.");
 

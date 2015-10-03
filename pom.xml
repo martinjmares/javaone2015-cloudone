@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cloud-one</groupId>
     <artifactId>cloud-one</artifactId>
     <version>1.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	
-	<modules>
+    <packaging>pom</packaging>
+
+    <modules>
         <module>jersey-media-json-gson</module>
         <module>cirrus</module>
         <module>cumulonimbus</module>
@@ -31,7 +31,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-		</plugins>
+        </plugins>
     </build>
 
     <dependencies>
@@ -56,6 +56,12 @@
             <version>1.3.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
@@ -63,9 +69,9 @@
             <version>4.11</version>
             <scope>test</scope>
         </dependency>
-	</dependencies>
-	
-	<dependencyManagement>
+    </dependencies>
+
+    <dependencyManagement>
         <dependencies>
             <!-- this project -->
             <dependency>
@@ -117,7 +123,7 @@
             </dependency>
 
         </dependencies>
-	</dependencyManagement>
+    </dependencyManagement>
 
     <properties>
         <jersey.version>2.19</jersey.version>

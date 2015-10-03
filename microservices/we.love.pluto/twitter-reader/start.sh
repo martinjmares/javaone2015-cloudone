@@ -9,4 +9,4 @@ if [ ! -d "$JARPATH" ]; then
 fi
 
 
-java -jar "$JARPATH"/twitter-reader-*.jar --file ~/twitter.txt $@
+java -jar "$JARPATH"/twitter-reader-*.jar --mockFile ~/twitter.txt --keywords welovepluto,javaone $@

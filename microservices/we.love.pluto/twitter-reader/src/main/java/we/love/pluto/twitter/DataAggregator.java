@@ -5,6 +5,7 @@ import java.util.List;
 import org.glassfish.jersey.spi.Contract;
 
 /**
+ * @author Michal Gajdos
  */
 @Contract
 interface DataAggregator {

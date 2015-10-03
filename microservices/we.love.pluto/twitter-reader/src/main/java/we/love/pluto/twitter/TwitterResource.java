@@ -10,6 +10,7 @@ import javax.inject.Inject;
 
 /**
  * @author Martin Mares (martin.mares at oracle.com)
+ * @author Michal Gajdos
  */
 @Path("tweet")
 public class TwitterResource {

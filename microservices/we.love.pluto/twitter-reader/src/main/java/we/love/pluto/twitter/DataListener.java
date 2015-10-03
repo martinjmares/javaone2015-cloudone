@@ -1,6 +1,7 @@
 package we.love.pluto.twitter;
 
 /**
+ * @author Michal Gajdos
  */
 interface DataListener {
 

@@ -29,3 +29,7 @@ nb-configuration.xml
 # Maven plugins noise
 dependency-reduced-pom.xml
 pom.xml.versionsBackup
+
+# CloudOne noise
+twitter-api-my.properties
+twitter.txt
