@@ -29,9 +29,9 @@ abstract class AbstractAggregator implements DataAggregator {
     }
 
     @Override
-    public AbstractAggregator message(final String message) {
+    public AbstractAggregator message(String message, String username) {
         lastMessage = message;
-        listeners.forEach(listener -> listener.onNext(message));
+        listeners.forEach(listener -> listener.onNext(message, username));
 
         return this;
     }

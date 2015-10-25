@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import cloudone.C1Services;
 import com.google.common.collect.Lists;
-
 import com.twitter.hbc.ClientBuilder;
 import com.twitter.hbc.core.Constants;
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
@@ -13,11 +13,10 @@ import com.twitter.hbc.core.processor.StringDelimitedProcessor;
 import com.twitter.hbc.httpclient.auth.Authentication;
 import com.twitter.hbc.httpclient.auth.OAuth1;
 import com.twitter.hbc.twitter4j.Twitter4jStatusClient;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import cloudone.C1Services;
 import twitter4j.Status;
 import twitter4j.StatusAdapter;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Michal Gajdos
@@ -87,7 +86,7 @@ final class TwitterAggregator extends AbstractAggregator {
 
         @Override
         public void onStatus(final Status status) {
-            message(status.getText());
+            message(status.getText(), status.getUser().getName());
         }
     }
 }

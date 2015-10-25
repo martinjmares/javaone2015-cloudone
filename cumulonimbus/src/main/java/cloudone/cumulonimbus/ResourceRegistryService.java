@@ -1,18 +1,5 @@
 package cloudone.cumulonimbus;
 
-import cloudone.internal.ApplicationFullName;
-import cloudone.cumulonimbus.model.Cluster;
-import cloudone.cumulonimbus.model.HttpMethod;
-import cloudone.cumulonimbus.model.PathRegistry;
-import cloudone.cumulonimbus.model.RegisteredRuntime;
-import cloudone.cumulonimbus.model.RestResourceDescription;
-import cloudone.cumulonimbus.model.ServiceRestResources;
-import cloudone.cumulonimbus.provider.ServiceRestResourcesProvider;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +7,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+
+import cloudone.cumulonimbus.later.LaterService;
+import cloudone.cumulonimbus.model.Cluster;
+import cloudone.cumulonimbus.model.HttpMethod;
+import cloudone.cumulonimbus.model.PathRegistry;
+import cloudone.cumulonimbus.model.RegisteredRuntime;
+import cloudone.cumulonimbus.model.RestResourceDescription;
+import cloudone.cumulonimbus.model.ServiceRestResources;
+import cloudone.cumulonimbus.provider.ServiceRestResourcesProvider;
+import cloudone.internal.ApplicationFullName;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages catalogue of REST resources from various services.
@@ -80,6 +82,8 @@ public class ResourceRegistryService {
                 for (RestResourceDescription restResourceDescription : serviceRestResources.getResources()) {
                     pathRegistry.register(restResourceDescription.getPath(), restResourceDescription.getMethod(), appFullName);
                 }
+                //This direct call is very ugly - MUST BE REDESIGNED
+                LaterService.getInstance().processQueuesForNewApp(appFullName);
             } catch (Exception e) {
                 LOGGER.warn("doLoadServiceContract(" + appFullName + "): Cannot load wadl!", e);
             }

@@ -81,7 +81,7 @@ final class MockedTwitter extends AbstractAggregator {
             final String message = readFile();
 
             if (message != null) {
-                message(message);
+                message(message, "mock");
             }
         }
     }

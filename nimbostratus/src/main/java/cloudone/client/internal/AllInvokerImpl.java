@@ -1,5 +1,12 @@
 package cloudone.client.internal;
 
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
 import cloudone.ServiceFullName;
 import cloudone.client.AllInvoker;
 import cloudone.client.LaterAllInvoker;
@@ -8,13 +15,6 @@ import org.glassfish.jersey.client.JerseyClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import java.util.List;
 
 /**
  * @author Martin Mares (martin.mares at oracle.com)
@@ -36,7 +36,7 @@ public class AllInvokerImpl extends InvokerBase implements AllInvoker {
 
     @Override
     public LaterAllInvoker later() {
-        throw new NotImplementedException();
+        return new LaterAllInvokerImpl(client, targetUri, serviceFullNames);
     }
 
     @Override

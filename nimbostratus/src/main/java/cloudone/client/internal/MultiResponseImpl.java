@@ -1,13 +1,5 @@
 package cloudone.client.internal;
 
-import cloudone.C1Services;
-import cloudone.client.MultiResponse;
-import cloudone.internal.ApplicationFullName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,6 +13,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
+import cloudone.C1Services;
+import cloudone.client.MultiResponse;
+import cloudone.internal.ApplicationFullName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of MultiResponse which contruct is fulfilled when all callables are add. It means that no new item
@@ -106,7 +107,6 @@ public class MultiResponseImpl implements MultiResponse {
             protected void done() {
                 super.done();
                 synchronized (responses) {
-                    LOGGER.info("Finish call on " + identifiedResponse.getApplicationFullName());
                     responses.add(identifiedResponse);
                     nextDoneLatch.countDown();
                     nextDoneLatch = new CountDownLatch(1);

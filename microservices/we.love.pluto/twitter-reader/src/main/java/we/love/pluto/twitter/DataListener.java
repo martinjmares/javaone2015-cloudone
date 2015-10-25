@@ -5,5 +5,5 @@ package we.love.pluto.twitter;
  */
 interface DataListener {
 
-    void onNext(String message);
+    void onNext(String message, String username);
 }

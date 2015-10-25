@@ -1,20 +1,5 @@
 package cloudone.internal.nimbostratus;
 
-import cloudone.C1Services;
-import cloudone.ServiceFullName;
-import cloudone.internal.ApplicationFullName;
-import cloudone.internal.dto.PortInfo;
-import cloudone.internal.dto.RuntimeIdAndSecCode;
-import org.glassfish.jersey.gson.GsonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +9,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+
+import cloudone.C1Services;
+import cloudone.ServiceFullName;
+import cloudone.internal.ApplicationFullName;
+import cloudone.internal.dto.PortInfo;
+import cloudone.internal.dto.RuntimeIdAndSecCode;
+import org.glassfish.jersey.gson.GsonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Java API for rest cumulonimbus services.
@@ -40,6 +41,7 @@ public class CumulonimbusClient {
 
     private final Client client;
     private volatile WebTarget target;
+    private volatile String targetUrl;
     private RuntimeIdAndSecCode registration;
 
     private CumulonimbusClient() {
@@ -74,7 +76,12 @@ public class CumulonimbusClient {
         } else {
             LOGGER.info("Can not locate cumulonimbus configuration directory. Use default 4242.");
         }
-        this.target = client.target("http://localhost:" + port);
+        this.targetUrl = "http://localhost:" + port;
+        this.target = client.target(targetUrl);
+    }
+
+    public String getTargetUrl() {
+        return targetUrl;
     }
 
     private WebTarget addServiceFullName(WebTarget target, ServiceFullName name) {
@@ -89,6 +96,16 @@ public class CumulonimbusClient {
 
     private <T> T cumulonimbusCall(final Function<WebTarget, T> f) {
         return f.apply(target);
+    }
+
+    public String laterApi(boolean all, Function<WebTarget, String> f) {
+        WebTarget t;
+        if (all) {
+            t = target.path("/later/all");
+        } else {
+            t = target.path("/later/any");
+        }
+        return f.apply(t);
     }
 
     public int reservePort(final boolean admin) throws RuntimeException {

@@ -1,15 +1,5 @@
 package cloudone.cumulonimbus;
 
-import cloudone.C1Application;
-import cloudone.C1Services;
-import cloudone.cumulonimbus.resources.ConfigurationResource;
-import cloudone.cumulonimbus.resources.ResourceDiscoveryResource;
-import cloudone.internal.resources.LifecycleResource;
-import cloudone.cumulonimbus.resources.ServiceResource;
-import cloudone.internal.provider.DurationMessageBodyWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -20,6 +10,17 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+
+import cloudone.C1Application;
+import cloudone.C1Services;
+import cloudone.cumulonimbus.resources.ConfigurationResource;
+import cloudone.cumulonimbus.resources.LaterResource;
+import cloudone.cumulonimbus.resources.ResourceDiscoveryResource;
+import cloudone.cumulonimbus.resources.ServiceResource;
+import cloudone.internal.provider.DurationMessageBodyWriter;
+import cloudone.internal.resources.LifecycleResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cumulonimbus represents central cloudOne service. Main goals are to provide configuration and navigation services.
@@ -41,7 +42,8 @@ public class CumulonimbusApp extends C1Application {
                 ConfigurationResource.class,
                 ServiceResource.class,
                 ResourceDiscoveryResource.class,
-                DurationMessageBodyWriter.class
+                DurationMessageBodyWriter.class,
+                LaterResource.class
         }));
     }
 

@@ -18,7 +18,7 @@ interface DataAggregator {
 
     DataAggregator listener(DataListener listener);
 
-    DataAggregator message(String message);
+    DataAggregator message(String message, String username);
 
     void stop();
 

@@ -27,7 +27,7 @@ public class TwitterResource {
     @POST
     @Consumes("text/plain")
     public void postTweet(String message) {
-        twitter.message(message);
+        twitter.message(message, "local");
     }
 
 }

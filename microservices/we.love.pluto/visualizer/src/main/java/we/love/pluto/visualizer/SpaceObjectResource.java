@@ -53,16 +53,16 @@ public class SpaceObjectResource {
 
     @POST
     @Path("of-the-moment")
-    public Response post(final String object) {
+    public Response post(final String[] objects) {
         // Increment counter.
-        if (!occurrences.containsKey(object)) {
-            occurrences.putIfAbsent(object, new AtomicInteger());
+        for (String object : objects) {
+            if (!occurrences.containsKey(object)) {
+                occurrences.putIfAbsent(object, new AtomicInteger());
+            }
+            occurrences.get(object).incrementAndGet();
         }
-        occurrences.get(object).incrementAndGet();
-
         // Broadcast.
         broadcaster.broadcast(event());
-
         return Response.ok().build();
     }
 
